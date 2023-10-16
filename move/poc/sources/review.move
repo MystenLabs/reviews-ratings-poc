@@ -1,4 +1,4 @@
-module contract::review {
+module poc::review {
     // Functional requirements
     // - Reviewer is also can be consumer
     // - Reviewer can post review to service

@@ -1,4 +1,4 @@
-module contract::incentive_pool {
+module poc::incentive_pool {
     use sui::object::{Self, UID};
     use sui::tx_context::{Self, TxContext};
 
