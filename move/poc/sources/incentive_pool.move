@@ -18,7 +18,7 @@ module poc::incentive_pool {
 
     // pool creation
     public fun create_pool(pool_addr: address, incentive_amount: Coin<SUI>, ctx: &mut TxContext): (POOL, address) {
-        let new_pool_ aowner = tx_context::sender(ctx);
+        let new_pool_owner = tx_context::sender(ctx);
         let new_pool = POOL {
             id: object::new(ctx),
             addr: pool_addr,

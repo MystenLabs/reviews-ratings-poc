@@ -1,4 +1,4 @@
-module contract::service {
+module poc::service {
     use std::string::String;
     use std::vector;        
     use sui::dynamic_object_field as dof;
@@ -8,8 +8,8 @@ module contract::service {
     use sui::tx_context::{Self, TxContext};
 
 
-    use contract::review::Unlocked;
-    use contract::incentive_pool::{POOL,pool_data};
+    use poc::review::Unlocked;
+    use poc::incentive_pool::{POOL,pool_data};
 
     const ENoPicture: u64 = 0;    
 
