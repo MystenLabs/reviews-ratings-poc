@@ -1,21 +1,24 @@
 module poc::incentive_pool {
     use sui::object::{Self, UID};
     use sui::tx_context::{Self, TxContext};
+    use sui::sui::SUI;
+    use sui::coin::{Coin, Self};
 
     struct POOL has key, store {
         id: UID,
         addr: address,
         owner: address,
-        amount: u64
+        amount: Coin<SUI>
     }
 
     public fun pool_data(pool: &POOL): (address, address, u64) {
-        (pool.addr, pool.owner, pool.amount)
+        let amount = coin::value(&pool.amount);
+        (pool.addr, pool.owner, amount)
     } 
 
     // pool creation
-    public fun create_pool(pool_addr: address, incentive_amount: u64, ctx: &mut TxContext): (POOL, address) {
-        let new_pool_owner = tx_context::sender(ctx);
+    public fun create_pool(pool_addr: address, incentive_amount: Coin<SUI>, ctx: &mut TxContext): (POOL, address) {
+        let new_pool_ aowner = tx_context::sender(ctx);
         let new_pool = POOL {
             id: object::new(ctx),
             addr: pool_addr,

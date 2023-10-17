@@ -13,111 +13,148 @@ module poc::review {
 
     // Error codes
     const ENotEnoughTip: u64 = 1;
-    const EReviewerIsNotReviewWriter: u64 = 2;
+    const ENotEnoughBalance: u64 = 2;
+    const EBalanceExceedsTip: u64 = 3;
+    // const EReviewerIsNotReviewWriter: u64 = 4;
     // Constants
     // Struct
-    struct Obj has key, store{
+
+    struct Locked has key, store{
         id: UID, 
+        reviewer: address,
+        service: address,
         head: String,
+        total_score: u8,
+        decay_rate: u8,
+        minumum_tip: Coin<SUI>,
+    }
+
+    // ===== Public view functions =====
+    public fun head(locked: &Locked): String {
+        locked.head
+    }
+
+    public fun total_score(locked: &Locked): u8 {
+        locked.total_score
+    }
+
+    public fun decay_rate(locked: &Locked): u8 {
+        locked.decay_rate
+    }
+
+    public fun writer(locked: &Locked): address {
+        locked.reviewer
+    }    
+
+    public fun tip(locked: &Locked): u64 {
+       coin::value(&locked.minumum_tip)
+    }    
+
+    struct Unlocked has key, store {
+        id: UID, 
+        reviewer: address,
+        service: address,
         body: String,
         up_vote: u8,
         down_vote: u8,
-        total_score: u8,
-        decay_rate: u8,
-        writer: address,
-        minumum_tip: Coin<SUI>,
-        full_view_authorized_users: vector<address>,
+        access_granted_user_list: vector<address>,
     }
 
-    struct Authority_Ticket has key, store {
-        id: UID,
-        review_addr: address,
-        writer:address
+    public fun body(unlocked: &Unlocked): String {
+        unlocked.body
     }
 
-     // ===== Public view functions =====
-    public fun head(review: &Obj): String {
-        review.head
-    }
-    public fun body(review: &Obj): String {
-        review.body
-    }
-    public fun total_score(review: &Obj): u8 {
-        review.total_score
-    }
-    public fun decay_rate(review: &Obj): u8 {
-        review.decay_rate
-    }
-    public fun vote(review: &Obj): (u8,u8) {
-        (review.up_vote, review.down_vote)
-    }
-    public fun writer(review: &Obj): address {
-        review.writer
+    public fun vote(unlocked: &Unlocked): (u8,u8) {
+        (unlocked.up_vote, unlocked.down_vote)
     }
 
-    public fun tip(review: &Obj): u64 {
-       coin::value(&review.minumum_tip)
+    public fun access_granted_consumers(unlocked: &Unlocked): vector<address> {
+       let list = unlocked.access_granted_user_list;
+       list
     }    
 
-    public fun full_view_authorized_users(review: &Obj): vector<address> {
-       let list = review.full_view_authorized_users;
-       list
-    }
-
+    public fun is_access_granted(unlocked: &Unlocked, user: &address): bool {
+        let consumer_lists = &access_granted_consumers(unlocked);
+        vector::contains(consumer_lists, user)
+    }    
+    
     // register auhtourized user
-    public fun register_authorized_user(review: &mut Obj, user: address) {
-        let list = full_view_authorized_users(review);
+    public fun register_consumer(unlocked: &mut Unlocked, user: address) {
+        let list = access_granted_consumers(unlocked);
         vector::push_back(&mut list, user);
     }
 
-    public fun is_authorized_user(review: &Obj, user: &address): bool {
-        let user_lists = &full_view_authorized_users(review);
-        vector::contains(user_lists, user)
-    }
-
-    public fun post_to_service(
+    public fun post_to_owner(
         head_contents: String,
         body_contents: String,
         service: address,
         tip_amount: Coin<SUI>,
         ctx: &mut TxContext) {
-        let writer = tx_context::sender(ctx);
-        let (review, service_address) = create(head_contents, body_contents, service, writer, tip_amount, ctx);
+        let reviewer = tx_context::sender(ctx);
+        
+        let locked_review = create_lock_review ( 
+            reviewer, 
+            service, 
+            head_contents, 
+            tip_amount, 
+            ctx
+        );
+        let unlocked_review = create_unlock_review(
+            reviewer, 
+            service, 
+            body_contents, 
+            ctx
+        );
 
-        transfer::public_transfer(review, service_address)
+        transfer::public_transfer(locked_review, service);
+        transfer::public_transfer(unlocked_review, reviewer)
     }
 
-    public fun create (
-        head_contents: String,
-        body_contents: String,
+    public fun create_lock_review (
+        reviewer: address,
         service: address,
-        writer_address: address,
+        head: String,
         tip_amount: Coin<SUI>,
-        ctx: &mut TxContext
-    ): (Obj, address) {
-        let service_address = service;
-        let review = Obj {
+        ctx: &mut TxContext,
+    ): Locked {
+        
+        let locked_review = Locked {
             id: object::new(ctx),
-            head: head_contents,
+            reviewer: reviewer,
+            service: service,
+            head: head,
+            total_score: 0,
+            decay_rate: 1,
+            minumum_tip: tip_amount,
+            
+        };
+        locked_review
+    }    
+
+    public fun create_unlock_review (
+        reviewer: address,
+        service: address,
+        body_contents: String,
+        ctx: &mut TxContext,
+    ): Unlocked {
+        
+        let unlocked_review = Unlocked {
+            id: object::new(ctx),
+            reviewer: reviewer,
+            service: service,
             body: body_contents,
             up_vote: 0,
             down_vote: 0,
-            total_score: 0,
-            decay_rate: 1,
-            writer: writer_address,
-            minumum_tip: tip_amount,
-            full_view_authorized_users: vector::empty<address>(),
+            access_granted_user_list: vector::empty<address>(),
         };
-
-        (review, service_address)
-
+        unlocked_review
     }
 
     public fun total_score_calculation(
         intrinsic_value: u8, 
         extrinsic_value: u8, 
         verfication_multiplier: u8,
-        review: &Obj):u8 {
+        review: &Locked):u8 {
             let dr = decay_rate(review);
             let is = intrinsic_value;
             let es = extrinsic_value;
@@ -126,58 +163,70 @@ module poc::review {
             total_score
     }
 
-    public fun update_total_score(intrinsic_value: u8, extrinsic_value: u8, verfication_multiplier: u8, review: &mut Obj){
-        let total_score = total_score_calculation(intrinsic_value,extrinsic_value, verfication_multiplier,review);
-        review.total_score = total_score;
-
+    public fun update_total_score(
+        intrinsic_value: u8, 
+        extrinsic_value: u8, 
+        verfication_multiplier: u8, 
+        locked: &mut Locked)
+    {
+        let total_score = total_score_calculation(
+            intrinsic_value,
+            extrinsic_value, 
+            verfication_multiplier,
+            locked
+        );
+        locked.total_score = total_score;
     }
 
-    public fun update_votes(up_vote: u8, down_vote: u8, review: &mut Obj){
-        review.up_vote = up_vote;
-        review.down_vote = down_vote;
+    public fun update_decay_rate(locked: &mut Locked, decay_rate: u8){
+        locked.decay_rate = decay_rate;
     }
 
-    public fun update_decay_rate(review: &mut Obj, decay_rate: u8){
-        review.decay_rate = decay_rate;
+    public fun update_votes(up_vote: u8, down_vote: u8, unlocked: &mut Unlocked){
+        unlocked.up_vote = unlocked.up_vote + up_vote;
+        unlocked.down_vote = unlocked.up_vote + down_vote;
     }
 
-    public fun send_full_access_req(
-        review_obj_address: address,
+    struct AccessTicket has key, store {
+        id: UID,
+        locked_review_obj_addr: address,
         reviewer: address,
-        tip_amount: u64,
-        review_obj: &Obj,
-        ctx : &mut TxContext,
-        ) {
-            assert!(review_obj.writer != reviewer, EReviewerIsNotReviewWriter);
-            let minumum_tip = tip(review_obj);
-            assert!( tip_amount < minumum_tip, ENotEnoughTip);
-            let sender = tx_context::sender(ctx);
-            let ticket = create_full_review_access_auth_req(review_obj_address, reviewer, ctx);
-            transfer::transfer(ticket, sender)
-            
-        }
-
-    public fun create_full_review_access_auth_req (
-        review_obj:address,
-        reviewer:address,
-        ctx : &mut TxContext,
-    ): Authority_Ticket {
-        let ticket = Authority_Ticket {
-            id: object::new(ctx),
-            review_addr: review_obj,
-            writer: reviewer,
-        };
-        ticket
+        sender: address,
     }
 
-    
+    public fun create_access_ticket(
+        review_obj_addr: address,
+        reviewer: address,
+        sender: address,
+        ctx : &mut TxContext,
+    ): AccessTicket {
 
+        let ticket = AccessTicket {
+            id: object::new(ctx),
+            locked_review_obj_addr: review_obj_addr,
+            reviewer: reviewer,
+            sender: sender,
+        };
+        ticket        
+    }     
 
-    
-
-
-
-
-
-
+    public fun full_access_req (
+        locked_review: &Locked,
+        reviewer:address,
+        service_owner: address,
+        balance: &mut Coin<SUI>,
+        tip: u64,
+        ctx : &mut TxContext,
+    ) {
+        let required_tip = tip(locked_review);        
+        assert!(tip < required_tip, ENotEnoughTip);
+        assert!(coin::value(balance) < tip, ENotEnoughBalance);
+        assert!(coin::value(balance) < required_tip, EBalanceExceedsTip);
+        let consumer = tx_context::sender(ctx);
+        let locked_review_addr = object::uid_to_address(&locked_review.id);
+        let ticket = create_access_ticket(locked_review_addr, reviewer, consumer, ctx);
+        let tip_amount = coin::split(balance, tip, ctx);
+        transfer::public_transfer(ticket, service_owner);
+        transfer::public_transfer(tip_amount, reviewer);
+    }
 }
