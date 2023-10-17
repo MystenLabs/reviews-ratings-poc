@@ -1,108 +1,107 @@
 module poc::service {
     use std::string::String;
-    use std::vector;        
+    use std::vector;
+    use sui::balance::{Self, Balance};       
     use sui::dynamic_object_field as dof;
-    use sui::object::{Self,UID};
+    use sui::object::{Self, ID, UID};
+    use sui::sui::SUI;
     use sui::table::Table;
     use sui::transfer;
-    use sui::tx_context::{Self, TxContext};
+    use sui::tx_context::{Self, sender, TxContext};
 
+// ====================== Consts =======================
 
-    use poc::review::Unlocked;
-    use poc::incentive_pool::{POOL,pool_data};
+    const ENoPicture: u64 = 0;
+    const EInvalidPermission: u64 = 1;
 
-    const ENoPicture: u64 = 0;    
+// ====================== Structs ======================
 
-    // Service List will show the regiered services to users this will be shared object
-    // because of the this Lists has to be amended by the service owner
-    struct Registery has key {
+    struct AdminCap has key, store {
         id: UID,
+        service_id: ID
     }
-
-    struct ServiceMetaData has key, store {
-        id: UID,
-        owner: address,
-        service_obj_address: address
-    }    
 
     struct SERVICE has key, store {
         id: UID,
-        owner: address,
-        pool: POOL,
-        cuisine_type: String,
-        location: String,
-        google_map_url: String,
-        operating_hours: String,
-        url: String,
-        pictures_urls: vector<u8>,
-        reviewer_lists: vector<address>,
-        review_list: Table<address,Unlocked>, // 
-        rating: u8,
+        // owner: address, // use AdminCap
+        reward_pool: Balance<SUI>
+        // reviews: vector<Review> // use priority_queue?, max size should be < 1000
+
+        // cuisine_type: String,
+        // location: String,
+        // google_map_url: String,
+        // operating_hours: String,
+        // url: String,
+        // pictures_urls: vector<u8>,
+        // reviewer_lists: vector<address>,
+        // review_list: Table<address,Unlocked>, // 
+        // rating: u8,
     }
+
+    struct ProofOfExperience has key, store {
+        id: UID,
+        service_id: ID,
+        // timestamp: String,
+    }
+
+// ======================== Functions ===================
 
     fun init(ctx: &mut TxContext){
-        let service_list = Registery{
-            id: object::new(ctx)
-        };
-        transfer::share_object(service_list)
     }
 
-    public fun register_service(
-        service: &SERVICE,
-        registry: &mut Registery,
+    public fun create_service(
+        // ToDo - pass required fields
         ctx: &mut TxContext,
     ) {
-        let service_owner = tx_context::sender(ctx);
-        let service_address = object::uid_to_address(&service.id);
-        let service_meta_data = ServiceMetaData{
-            id: object::new(ctx),
-            owner: service_owner,
-            service_obj_address: service_address
+        let id = object::new(ctx);
+        let service_id = object::uid_to_inner(&id);
+        let service = SERVICE {
+            id,
+            reward_pool: balance::zero(),
         };
-        let registry_id = &mut registry.id;
 
-        dof::add(registry_id, service_address, service_meta_data)
-    }        
+        let admin_cap = AdminCap {
+            id: object::new(ctx),
+            service_id
+        };
 
-    // public view functions
-    public fun owner(service: &SERVICE): address {
-        service.owner
+        // ToDo - add event emit
+
+        transfer::share_object(service);
+        transfer::public_transfer(admin_cap, sender(ctx));
     }
 
-    public fun pool(service: &SERVICE): (address, address, u64) {
-       pool_data(&service.pool)
-    }
-    
-    public fun cuisine_type(service: &SERVICE): String {
-        service.cuisine_type
-    }
-
-    public fun location(service: &SERVICE): String {
-        service.location
-    }
-
-    public fun google_map_url(service: &SERVICE): String {
-        service.google_map_url
-    }
-
-    public fun operating_hours(service: &SERVICE): String {
-        service.operating_hours
+    public fun generate_proof_of_experience(
+        cap: &AdminCap, 
+        service: &SERVICE, 
+        recipient: address, 
+        ctx: &mut TxContext
+    ) {
+        assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
+        let id = object::new(ctx);
+        let poe = ProofOfExperience {
+            id,
+            service_id: cap.service_id
+            // timestamp: ""
+        };
+        // ToDo - add event emit
+        transfer::transfer(poe, recipient);
     }
 
-    public fun url(service: &SERVICE): String {
-        service.url
+    public fun write_new_review(
+        poe: ProofOfExperience, 
+        service: &SERVICE, 
+        hash_of_review: vector<u8>, 
+        ctx: &mut TxContext
+    ) {
+        assert!(poe.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
+
+        // burn poe
+        let ProofOfExperience {id, service_id: _} = poe;
+        object::delete(id);
+
+        // ToDo - create review object and transfer to sender
+
     }
 
-    public fun pictures_urls(service: &SERVICE): vector<u8> {
-        assert!(vector::length(&service.pictures_urls) == 0, ENoPicture);
-        service.pictures_urls
-    }    
-
-    public fun verified_user_lists(service: &SERVICE): vector<address> {
-        service.reviewer_lists
-    }
-
-    public fun rating(service: &SERVICE): u8 {
-        service.rating
-    }
 }
