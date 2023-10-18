@@ -26,6 +26,7 @@ module poc::service {
         // owner: address, // use AdminCap
         reward_pool: Balance<SUI>
         // reviews: vector<Review> // use priority_queue?, max size should be < 1000
+        // recent_reviews: vector<Review> // keep last 5 reviews
 
         // cuisine_type: String,
         // location: String,
@@ -99,6 +100,11 @@ module poc::service {
         // burn poe
         let ProofOfExperience {id, service_id: _} = poe;
         object::delete(id);
+
+        // check if timestamp expired
+        // if (timestamp of poe expired?) {
+        //     return; // still burn poe
+        // }
 
         // ToDo - create review object and transfer to sender
 
