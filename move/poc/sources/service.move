@@ -1,4 +1,4 @@
-module poc::service {
+module contract::service {
     use std::string::String;
     use std::vector;        
     use sui::dynamic_object_field as dof;
@@ -8,8 +8,8 @@ module poc::service {
     use sui::tx_context::{Self, TxContext};
 
 
-    use poc::review::Unlocked;
-    use poc::incentive_pool::{POOL,pool_data};
+    use contract::review::Unlocked;
+    use contract::incentive_pool::{POOL,pool_data};
 
     const ENoPicture: u64 = 0;    
 
@@ -36,8 +36,14 @@ module poc::service {
         url: String,
         pictures_urls: vector<u8>,
         reviewer_lists: vector<address>,
-        review_list: Table<address,Unlocked>, // 
+        review_list: Table<address,String>, // 
         rating: u8,
+    }
+
+    struct ProofOfExperience has key, store {
+        id:UID,
+        timestamp: String,
+        
     }
 
     fun init(ctx: &mut TxContext){
@@ -105,4 +111,40 @@ module poc::service {
     public fun rating(service: &SERVICE): u8 {
         service.rating
     }
+    // TODO: implement below functions
+    // public fun publish_service(ctx: &mut TxContext) {
+
+    // }
+
+    // public fun create_service() {
+
+    // }
+
+    // public fun mint_poe_mark() {
+
+    // }
+
+    // public fun send_poe_mark() {
+
+    // }
+
+    // public fun add_review() {
+
+    // }
+
+    // public fun add_reviewer() {
+
+    // }
+
+    // public fun is_reviewer_duplicated():bool {
+
+    // }
+
+    // public fun add_access_granted_consumer() {
+
+    // }
+
+    // public fun is_granted_consumer_duplicated():bool {
+
+    // }
 }
