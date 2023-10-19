@@ -18,7 +18,7 @@ export default function Home() {
       }}
     >
       <div
-        className="flex justify-center items-center space-x-7 shadow-[0px_4px_7px_3px_rgba(0,0,0,0.41)] grow px-5 py-10 rounded-[62px]"
+        className="flex justify-center items-center space-x-8 shadow-[0px_4px_7px_3px_rgba(0,0,0,0.41)] grow px-10 py-10 rounded-[62px]"
         style={{
           width: "500px",
           position: "absolute",
@@ -33,7 +33,7 @@ export default function Home() {
             <button
               key={role}
               onClick={() => handleLoginAs(role)}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-[38px]"
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-[38px] w-[200px] h-[62px]"
             >
               {role.slice(0, 1).toUpperCase().concat(role.slice(1))}
             </button>

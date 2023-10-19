@@ -2,13 +2,13 @@
 
 import { useAuthentication } from "../hooks/useAuthentication";
 
-export default function ModeratorRootLayout({
+export default function AdminRootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const { user } = useAuthentication();
-  if (user?.role !== "moderator") {
+  if (user?.role !== "serviceOwner") {
     return "Not allowed";
   }
   return children;

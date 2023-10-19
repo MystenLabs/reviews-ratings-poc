@@ -8,7 +8,7 @@ export default function MemberRootLayout({
   children: React.ReactNode;
 }) {
   const { user } = useAuthentication();
-  if (user?.role !== "member") {
+  if (user?.role !== "user") {
     return "Not allowed";
   }
   return children;
