@@ -19,7 +19,7 @@ export const Navbar = () => {
         <div className="text-xl text-red-600 text-2xl font-bold">Restaurant Reviews</div>
       </div>
 
-      <div className="col-span-6 flex justify-center items-center gap-[14px]">
+      <div className="col-span-9 flex justify-end gap-[14px]">
         {navigations.map(({ title, href }) => {
           const pathParts = pathname.split("/").filter((part) => !!part);
           const pathSuffix = pathParts[pathParts.length - 1];
@@ -59,8 +59,6 @@ export const Navbar = () => {
             Logout
           </button>
         )}
-      </div>
-      <div className="col-span-3 flex justify-end">
         <ConnectButton />
       </div>
     </div>

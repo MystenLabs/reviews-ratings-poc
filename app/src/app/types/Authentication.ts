@@ -1,4 +1,4 @@
-export type UserRole = "serviceOwner" | "user";
+export type UserRole = "serviceOwner" | "user" | "anonymous";
 
 export interface UserProps {
   id: string;

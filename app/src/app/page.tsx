@@ -35,7 +35,7 @@ export default function Home() {
               onClick={() => handleLoginAs(role)}
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-[38px] w-[200px] h-[62px]"
             >
-              {role.slice(0, 1).toUpperCase().concat(role.slice(1))}
+              {role === "user" ? "USER" : "SERVICE OWNER"}
             </button>
           ))}
       </div>
