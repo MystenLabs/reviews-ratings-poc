@@ -16,14 +16,7 @@ export const Navbar = () => {
   return (
     <div className="grid grid-cols-12 w-full items-center p-[8px] h-[80px] border-b-gray-400 border-b-[1px] sticky top-0">
       <div className="col-span-3 flex space-x-3 items-center">
-        <div className="text-xl font-bold">PoC Template NextJS</div>
-        {!!user.id && (
-          <div className="text-gray-200">
-            For {user.role.slice(0, 1).toUpperCase().concat(user.role.slice(1))}
-            s
-          </div>
-        )}
-        {!user.id && <div className="text-gray-200">For Anonymous</div>}
+        <div className="text-xl text-red-600 text-2xl font-bold">Restaurant Reviews</div>
       </div>
 
       <div className="col-span-6 flex justify-center items-center gap-[14px]">
