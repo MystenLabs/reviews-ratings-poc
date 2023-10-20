@@ -6,12 +6,13 @@ module poc::service {
     use sui::dynamic_object_field as dof;
     use sui::object::{Self, ID, UID};
     use sui::sui::SUI;
-    use sui::table::Table;
     use sui::transfer;
     use sui::tx_context::{Self, sender, TxContext};
-    use sui::clock::{Self, Clock};
+    use sui::clock::Clock;
+    use sui::priority_queue::{Self, PriorityQueue, Entry};
+    use sui::linked_table::{Self, LinkedTable};
 
-    use poc::review::mint_review;
+    use poc::review::{mint_review, get_total_score};
 
 // ====================== Consts =======================
 
@@ -27,10 +28,9 @@ module poc::service {
 
     struct SERVICE has key, store {
         id: UID,
-        // owner: address, // use AdminCap
-        reward_pool: Balance<SUI>
-        // reviews: vector<Review> // use priority_queue?, max size should be < 1000
-        // recent_reviews: vector<Review> // keep last 5 reviews
+        reward_pool: Balance<SUI>,
+        reviews: PriorityQueue<ID>, // max size < 200
+        recent_reviews: LinkedTable<ID, ID>, //keep last 5 reviews
 
         // cuisine_type: String,
         // location: String,
@@ -62,6 +62,8 @@ module poc::service {
         let service = SERVICE {
             id,
             reward_pool: balance::zero(),
+            reviews: priority_queue::new<ID>(vector::empty()),
+            recent_reviews: linked_table::new<ID, ID>(ctx)
         };
 
         let admin_cap = AdminCap {
@@ -94,7 +96,7 @@ module poc::service {
 
     public fun write_new_review(
         cap: &AdminCap, // only admin may submit 
-        service: &SERVICE, 
+        service: &mut SERVICE, 
         hash_of_review: vector<u8>, 
         owner: address,
         is: u8, es: u8, vm: u8,
@@ -105,6 +107,11 @@ module poc::service {
         // ToDo - create review object and transfer to sender
         // How to compute is?
         mint_review(owner, object::uid_to_inner(&service.id), hash_of_review, is, es, vm, clock, ctx);
+
+        // update reviews, recent_reviews
+        // let ts = ...
+        // service.recent_reviews
+        // service.reviews
     }
 
 }

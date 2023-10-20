@@ -43,4 +43,10 @@ module poc::review {
         transfer::transfer(new_review, owner);
     }
 
+    public(friend) fun get_total_score(rev: &Review, ctx: &mut TxContext): u8 {
+        // compute total score
+        // TS = (IS + ES) * DR * VM
+        100
+    }
+
 }
