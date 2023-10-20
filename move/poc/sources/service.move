@@ -1,4 +1,5 @@
 module poc::service {
+
     use std::string::String;
     use std::vector;
     use sui::balance::{Self, Balance};       
@@ -8,6 +9,9 @@ module poc::service {
     use sui::table::Table;
     use sui::transfer;
     use sui::tx_context::{Self, sender, TxContext};
+    use sui::clock::{Self, Clock};
+
+    use poc::review::mint_review;
 
 // ====================== Consts =======================
 
@@ -42,7 +46,6 @@ module poc::service {
     struct ProofOfExperience has key, store {
         id: UID,
         service_id: ID,
-        // timestamp: String,
     }
 
 // ======================== Functions ===================
@@ -90,24 +93,18 @@ module poc::service {
     }
 
     public fun write_new_review(
-        poe: ProofOfExperience, 
+        cap: &AdminCap, // only admin may submit 
         service: &SERVICE, 
         hash_of_review: vector<u8>, 
+        owner: address,
+        is: u8, es: u8, vm: u8,
+        clock: &Clock,
         ctx: &mut TxContext
     ) {
-        assert!(poe.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
-
-        // burn poe
-        let ProofOfExperience {id, service_id: _} = poe;
-        object::delete(id);
-
-        // check if timestamp expired
-        // if (timestamp of poe expired?) {
-        //     return; // still burn poe
-        // }
-
+        assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
         // ToDo - create review object and transfer to sender
-
+        // How to compute is?
+        mint_review(owner, object::uid_to_inner(&service.id), hash_of_review, is, es, vm, clock, ctx);
     }
 
 }
