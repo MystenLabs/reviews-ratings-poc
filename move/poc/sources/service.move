@@ -1,17 +1,16 @@
-module contract::service {
+module poc::service {
     use std::string::String;
     use std::vector;        
     use sui::dynamic_object_field as dof;
     use sui::object::{Self,UID};
-    use sui::table::Table;
+    use sui::table::{Table, Self};
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
 
-
-    use contract::review::Unlocked;
-    use contract::incentive_pool::{POOL,pool_data};
+    use poc::incentive_pool::{POOL,pool_data};
 
     const ENoPicture: u64 = 0;    
+    const EReviewerAlreadyAdded: u64 = 1;
 
     // Service List will show the regiered services to users this will be shared object
     // because of the this Lists has to be amended by the service owner
@@ -43,7 +42,7 @@ module contract::service {
     struct ProofOfExperience has key, store {
         id:UID,
         timestamp: String,
-        
+        service_address: address
     }
 
     fun init(ctx: &mut TxContext){
@@ -111,40 +110,81 @@ module contract::service {
     public fun rating(service: &SERVICE): u8 {
         service.rating
     }
+
+
+    public fun create_service(
+        cuisine_type: String,
+        location: String,
+        google_map_url: String,
+        operating_hours: String,
+        url: String,
+        pool : POOL,
+        ctx: &mut TxContext,
+    ):SERVICE {
+        let owner = tx_context::sender(ctx);
+        
+        let service = SERVICE{
+            id: object::new(ctx),
+            owner: owner,
+            pool: pool,
+            cuisine_type: cuisine_type,
+            location: location,
+            google_map_url: google_map_url,
+            operating_hours: operating_hours,
+            url: url,
+            pictures_urls: vector::empty(),
+            reviewer_lists: vector::empty(),
+            review_list: table::new<address, String>(ctx),
+            rating: 0,
+        };
+        service
+    }    
     // TODO: implement below functions
-    // public fun publish_service(ctx: &mut TxContext) {
+    public fun mint_service(
+        cuisine_type: String,
+        location: String,
+        google_map_url: String,
+        operating_hours: String,
+        url: String,
+        pool : POOL,
+        ctx: &mut TxContext
+        ) {
+        let sender = tx_context::sender(ctx);
+        let service = create_service(
+            cuisine_type,
+            location,
+            google_map_url,
+            operating_hours,
+            url,
+            pool,
+            ctx
+        );
+        transfer::public_transfer(service, sender);
+    }
 
+    public fun mint_poe_mark(time_stamp: String, ctx: &mut TxContext):ProofOfExperience {
+        let poe_mark = ProofOfExperience{
+            id: object::new(ctx),
+            timestamp: time_stamp,
+            service_address: tx_context::sender(ctx)
+        };
+        poe_mark
+    }
+
+    public fun send_poe_mark(time_stamp: String, reviwer:address ,ctx: &mut TxContext) {
+        let poe_mark = mint_poe_mark (time_stamp, ctx);
+        transfer::public_transfer(poe_mark, reviwer)
+    }
+
+    // public fun add_review(review_hash_string: String, service: &mut SERVICE, ctx: &mut TxContext) {
+         
     // }
 
-    // public fun create_service() {
+    public fun add_reviewer(reviewer: address, service: &mut SERVICE) {
+        let reviewer_lists_ref = &service.reviewer_lists;
+        let reviewer_list_mut = &mut service.reviewer_lists;
+        assert!(vector::contains<address>(reviewer_lists_ref, &reviewer), EReviewerAlreadyAdded);
+        vector::push_back<address>(reviewer_list_mut, reviewer)
+    }
 
-    // }
-
-    // public fun mint_poe_mark() {
-
-    // }
-
-    // public fun send_poe_mark() {
-
-    // }
-
-    // public fun add_review() {
-
-    // }
-
-    // public fun add_reviewer() {
-
-    // }
-
-    // public fun is_reviewer_duplicated():bool {
-
-    // }
-
-    // public fun add_access_granted_consumer() {
-
-    // }
-
-    // public fun is_granted_consumer_duplicated():bool {
-
-    // }
 }

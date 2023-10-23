@@ -14,12 +14,13 @@ module poc::review {
     // Error codes
     const ENotEnoughTip: u64 = 1;
     const ENotEnoughBalance: u64 = 2;
-    const EBalanceExceedsTip: u64 = 3;
+    const ETipExceedsRequiredTip: u64 = 3;
+    const EUserAlreadyGrantedAccess: u64 = 4;
     // const EReviewerIsNotReviewWriter: u64 = 4;
     // Constants
     // Struct
 
-    struct Locked has key, store{
+    struct Revealed has key, store{
         id: UID, 
         reviewer: address,
         service: address,
@@ -30,27 +31,27 @@ module poc::review {
     }
 
     // ===== Public view functions =====
-    public fun head(locked: &Locked): String {
-        locked.head
+    public fun head(revealed_review: &Revealed): String {
+        revealed_review.head
     }
 
-    public fun total_score(locked: &Locked): u8 {
-        locked.total_score
+    public fun total_score(revealed_review: &Revealed): u8 {
+        revealed_review.total_score
     }
 
-    public fun decay_rate(locked: &Locked): u8 {
-        locked.decay_rate
+    public fun decay_rate(revealed_review: &Revealed): u8 {
+        revealed_review.decay_rate
     }
 
-    public fun writer(locked: &Locked): address {
-        locked.reviewer
+    public fun writer(revealed_review: &Revealed): address {
+        revealed_review.reviewer
     }    
 
-    public fun tip(locked: &Locked): u64 {
-       coin::value(&locked.minumum_tip)
+    public fun tip(revealed_review: &Revealed): u64 {
+       coin::value(&revealed_review.minumum_tip)
     }    
 
-    struct Unlocked has key, store {
+    struct Hidden has key, store {
         id: UID, 
         reviewer: address,
         service: address,
@@ -60,27 +61,28 @@ module poc::review {
         access_granted_user_list: vector<address>,
     }
 
-    public fun body(unlocked: &Unlocked): String {
-        unlocked.body
+    public fun body(hidden_review: &Hidden): String {
+        hidden_review.body
     }
 
-    public fun vote(unlocked: &Unlocked): (u8,u8) {
-        (unlocked.up_vote, unlocked.down_vote)
+    public fun vote(hidden_review: &Hidden): (u8,u8) {
+        (hidden_review.up_vote, hidden_review.down_vote)
     }
 
-    public fun access_granted_consumers(unlocked: &Unlocked): vector<address> {
-       let list = unlocked.access_granted_user_list;
+    public fun access_granted_consumers(hidden_review: &Hidden): vector<address> {
+       let list = hidden_review.access_granted_user_list;
        list
     }    
 
-    public fun is_access_granted(unlocked: &Unlocked, user: &address): bool {
-        let consumer_lists = &access_granted_consumers(unlocked);
+    public fun is_access_granted(hidden_review: &Hidden, user: &address): bool {
+        let consumer_lists = &access_granted_consumers(hidden_review);
         vector::contains(consumer_lists, user)
     }    
     
     // register auhtourized user
-    public fun register_consumer(unlocked: &mut Unlocked, user: address) {
-        let list = access_granted_consumers(unlocked);
+    public fun add_access_granted_consumer(hidden_review: &Hidden, user: address) {
+        let list = access_granted_consumers(hidden_review);
+        assert!(vector::contains(&list, &user), EUserAlreadyGrantedAccess);
         vector::push_back(&mut list, user);
     }
 
@@ -92,33 +94,33 @@ module poc::review {
         ctx: &mut TxContext) {
         let reviewer = tx_context::sender(ctx);
         
-        let locked_review = create_lock_review ( 
+        let revealed_review = create_revealed_review ( 
             reviewer, 
             service, 
             head_contents, 
             tip_amount, 
             ctx
         );
-        let unlocked_review = create_unlock_review(
+        let hidden_review = create_hidden_review(
             reviewer, 
             service, 
             body_contents, 
             ctx
         );
 
-        transfer::public_transfer(locked_review, service);
-        transfer::public_transfer(unlocked_review, reviewer)
+        transfer::public_transfer(hidden_review, service);
+        transfer::public_transfer(revealed_review, reviewer)
     }
 
-    public fun create_lock_review (
+    public fun create_revealed_review (
         reviewer: address,
         service: address,
         head: String,
         tip_amount: Coin<SUI>,
         ctx: &mut TxContext,
-    ): Locked {
+    ): Revealed {
         
-        let locked_review = Locked {
+        let revealed_review = Revealed {
             id: object::new(ctx),
             reviewer: reviewer,
             service: service,
@@ -128,17 +130,17 @@ module poc::review {
             minumum_tip: tip_amount,
             
         };
-        locked_review
+        revealed_review
     }    
 
-    public fun create_unlock_review (
+    public fun create_hidden_review (
         reviewer: address,
         service: address,
         body_contents: String,
         ctx: &mut TxContext,
-    ): Unlocked {
+    ): Hidden {
         
-        let unlocked_review = Unlocked {
+        let hidden_review = Hidden {
             id: object::new(ctx),
             reviewer: reviewer,
             service: service,
@@ -147,14 +149,14 @@ module poc::review {
             down_vote: 0,
             access_granted_user_list: vector::empty<address>(),
         };
-        unlocked_review
+        hidden_review
     }
 
     public fun total_score_calculation(
         intrinsic_value: u8, 
         extrinsic_value: u8, 
         verfication_multiplier: u8,
-        review: &Locked):u8 {
+        review: &Revealed):u8 {
             let dr = decay_rate(review);
             let is = intrinsic_value;
             let es = extrinsic_value;
@@ -167,24 +169,24 @@ module poc::review {
         intrinsic_value: u8, 
         extrinsic_value: u8, 
         verfication_multiplier: u8, 
-        locked: &mut Locked)
+        revealed_review: &mut Revealed)
     {
         let total_score = total_score_calculation(
             intrinsic_value,
             extrinsic_value, 
             verfication_multiplier,
-            locked
+            revealed_review
         );
-        locked.total_score = total_score;
+        revealed_review.total_score = total_score;
     }
 
-    public fun update_decay_rate(locked: &mut Locked, decay_rate: u8){
-        locked.decay_rate = decay_rate;
+    public fun update_decay_rate(revealed_review: &mut Revealed, decay_rate: u8){
+        revealed_review.decay_rate = decay_rate;
     }
 
-    public fun update_votes(up_vote: u8, down_vote: u8, unlocked: &mut Unlocked){
-        unlocked.up_vote = unlocked.up_vote + up_vote;
-        unlocked.down_vote = unlocked.up_vote + down_vote;
+    public fun update_votes(up_vote: u8, down_vote: u8, hidden_review: &mut Hidden){
+        hidden_review.up_vote = hidden_review.up_vote + up_vote;
+        hidden_review.down_vote = hidden_review.up_vote + down_vote;
     }
 
     struct AccessTicket has key, store {
@@ -211,19 +213,19 @@ module poc::review {
     }     
 
     public fun full_access_req (
-        locked_review: &Locked,
+        revealed_review: &Revealed,
         reviewer:address,
         service_owner: address,
         balance: &mut Coin<SUI>,
         tip: u64,
         ctx : &mut TxContext,
     ) {
-        let required_tip = tip(locked_review);        
+        let required_tip = tip(revealed_review);        
         assert!(tip < required_tip, ENotEnoughTip);
         assert!(coin::value(balance) < tip, ENotEnoughBalance);
-        assert!(coin::value(balance) < required_tip, EBalanceExceedsTip);
+        assert!(coin::value(balance) < required_tip, ETipExceedsRequiredTip);
         let consumer = tx_context::sender(ctx);
-        let locked_review_addr = object::uid_to_address(&locked_review.id);
+        let locked_review_addr = object::uid_to_address(&revealed_review.id);
         let ticket = create_access_ticket(locked_review_addr, reviewer, consumer, ctx);
         let tip_amount = coin::split(balance, tip, ctx);
         transfer::public_transfer(ticket, service_owner);
