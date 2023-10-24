@@ -16,6 +16,7 @@ module poc::review {
     const ENotEnoughBalance: u64 = 2;
     const EBalanceExceedsTip: u64 = 3;
     const EAlreadyLocked: u64 = 4;
+    const ENotEnoughPayment: u64 = 5;
 
     struct Review has key, store {
         id: UID,
@@ -27,7 +28,8 @@ module poc::review {
         votes: u64, // es
         time_issued: u64, // dr: u8,
         vm: u8, // based on proof of experience, either 1 or 1.2
-        is_locked: bool
+        is_locked: bool,
+        fee_to_unlock: u64
     }
 
     struct ReviewAccessGrant has key {
@@ -46,7 +48,8 @@ module poc::review {
             votes: 0,
             time_issued: clock::timestamp_ms(clock),
             vm,
-            is_locked: false
+            is_locked: false,
+            fee_to_unlock: 1000000000
         };
 
         transfer::transfer(new_review, owner);
@@ -71,8 +74,9 @@ module poc::review {
     public(friend) fun grant_access(
         owner: address, 
         rev: &Review, 
-        // payment: Coin<SUI>, 
+        payment: &mut Coin<SUI>, 
         ctx: &mut TxContext) {
+        assert!(coin::value(payment) < rev.fee_to_unlock, ENotEnoughPayment);
         // generate an NFT that consumers can use to have access to obfuscated review
         let new_access = ReviewAccessGrant {
             id: object::new(ctx),
@@ -80,7 +84,9 @@ module poc::review {
             review_id: object::uid_to_inner(&rev.id)
         };
 
-        // ToDo: transfer payment to rev.owner
+        // transfer payment to rev.owner
+        let fee = coin::split(payment, rev.fee_to_unlock, ctx);
+        transfer::public_transfer(fee, rev.owner);
 
         transfer::transfer(new_access, owner);
     }
