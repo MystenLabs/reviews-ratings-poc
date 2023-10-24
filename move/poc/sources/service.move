@@ -12,7 +12,7 @@ module poc::service {
     use sui::priority_queue::{Self, PriorityQueue, Entry};
     use sui::linked_table::{Self, LinkedTable};
 
-    use poc::review::{mint_review, get_total_score};
+    use poc::review::{mint_review, get_total_score, grant_access};
 
 // ====================== Consts =======================
 
@@ -38,9 +38,6 @@ module poc::service {
         // google_map_url: String,
         // operating_hours: String,
         // url: String,
-        // pictures_urls: vector<u8>,
-        // reviewer_lists: vector<address>,
-        // review_list: Table<address,Unlocked>, // 
         // rating: u8,
     }
 
@@ -136,6 +133,14 @@ module poc::service {
         service: &mut SERVICE, 
         review_id: ID
     ) {
+    }
+
+    public fun grant_access_to(
+        service: &mut SERVICE, 
+        review_id: ID,
+        ctx: &mut TxContext
+    ) {
+        // grant_access()
     }
 
 }

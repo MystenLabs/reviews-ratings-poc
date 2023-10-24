@@ -75,7 +75,8 @@ module poc::review {
         owner: address, 
         rev: &Review, 
         payment: &mut Coin<SUI>, 
-        ctx: &mut TxContext) {
+        ctx: &mut TxContext
+    ) {
         assert!(coin::value(payment) < rev.fee_to_unlock, ENotEnoughPayment);
         // generate an NFT that consumers can use to have access to obfuscated review
         let new_access = ReviewAccessGrant {
@@ -84,7 +85,7 @@ module poc::review {
             review_id: object::uid_to_inner(&rev.id)
         };
 
-        // transfer payment to rev.owner
+        // pay rev.owner
         let fee = coin::split(payment, rev.fee_to_unlock, ctx);
         transfer::public_transfer(fee, rev.owner);
 
