@@ -29,6 +29,7 @@ module poc::service {
     struct SERVICE has key, store {
         id: UID,
         reward_pool: Balance<SUI>,
+        reward: u64,
         reviews: PriorityQueue<ID>, // max size < 200
         recent_reviews: LinkedTable<ID, ID>, //keep last 5 reviews
 
@@ -41,11 +42,6 @@ module poc::service {
         // reviewer_lists: vector<address>,
         // review_list: Table<address,Unlocked>, // 
         // rating: u8,
-    }
-
-    struct ProofOfExperience has key, store {
-        id: UID,
-        service_id: ID,
     }
 
 // ======================== Functions ===================
@@ -61,6 +57,7 @@ module poc::service {
         let service_id = object::uid_to_inner(&id);
         let service = SERVICE {
             id,
+            reward: 1000000000,
             reward_pool: balance::zero(),
             reviews: priority_queue::new<ID>(vector::empty()),
             recent_reviews: linked_table::new<ID, ID>(ctx)
@@ -77,41 +74,68 @@ module poc::service {
         transfer::public_transfer(admin_cap, sender(ctx));
     }
 
-    public fun generate_proof_of_experience(
-        cap: &AdminCap, 
-        service: &SERVICE, 
-        recipient: address, 
-        ctx: &mut TxContext
+    public fun list_ranked(
+        service: &mut SERVICE, 
     ) {
-        assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
-        let id = object::new(ctx);
-        let poe = ProofOfExperience {
-            id,
-            service_id: cap.service_id
-            // timestamp: ""
-        };
-        // ToDo - add event emit
-        transfer::transfer(poe, recipient);
+        // 
+    }
+
+    public fun list_recent(
+        service: &mut SERVICE, 
+    ) {
+        // 
     }
 
     public fun write_new_review(
         cap: &AdminCap, // only admin may submit 
         service: &mut SERVICE, 
-        hash_of_review: vector<u8>, 
         owner: address,
-        is: u8, es: u8, vm: u8,
+        hash_of_review: vector<u8>, 
+        len_of_review: u64,
+        vm: u8,
         clock: &Clock,
         ctx: &mut TxContext
     ) {
         assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
-        // ToDo - create review object and transfer to sender
-        // How to compute is?
-        mint_review(owner, object::uid_to_inner(&service.id), hash_of_review, is, es, vm, clock, ctx);
+        
+        mint_review(owner, object::uid_to_inner(&service.id), hash_of_review, len_of_review, vm, clock, ctx);
 
         // update reviews, recent_reviews
-        // let ts = ...
         // service.recent_reviews
         // service.reviews
+    }
+
+    public fun distribute_reward(
+        cap: &AdminCap,
+        service: &mut SERVICE, 
+    ) {
+        assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
+
+        // distribute a fixed amount to top 10 reviewers
+
+    }
+
+    // public fun generate_proof_of_experience() {
+    //     // generate an NFT and transfer it to customer who can use it to write a review with vm
+    // }
+
+    public fun recompute_ts_for_all(
+        cap: &AdminCap,
+        service: &mut SERVICE
+    ) {
+        assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
+    }
+    
+    public fun upvote(
+        service: &mut SERVICE, 
+        review_id: ID
+    ) {
+    }
+
+    public fun downvote(
+        service: &mut SERVICE, 
+        review_id: ID
+    ) {
     }
 
 }
