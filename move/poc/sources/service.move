@@ -2,17 +2,17 @@ module poc::service {
 
     use std::string::String;
     use std::vector;
-    use sui::balance::{Self, Balance};       
-    use sui::dynamic_object_field as dof;
+
+    use sui::balance::{Self, Balance};
+    use sui::clock::Clock;
+    use sui::linked_table::{Self, LinkedTable};
     use sui::object::{Self, ID, UID};
+    use sui::priority_queue::{Self, PriorityQueue, Entry};
     use sui::sui::SUI;
     use sui::transfer;
     use sui::tx_context::{Self, sender, TxContext};
-    use sui::clock::Clock;
-    use sui::priority_queue::{Self, PriorityQueue, Entry};
-    use sui::linked_table::{Self, LinkedTable};
 
-    use poc::review::{mint_review, get_total_score, grant_access};
+    use poc::review::{new_review, get_total_score, grant_access};
 
 // ====================== Consts =======================
 
@@ -26,14 +26,15 @@ module poc::service {
         service_id: ID
     }
 
-    struct SERVICE has key, store {
+    struct Service has key, store {
         id: UID,
         reward_pool: Balance<SUI>,
         reward: u64,
         reviews: PriorityQueue<ID>, // max size < 200
         recent_reviews: LinkedTable<ID, ID>, //keep last 5 reviews
 
-        // cuisine_type: String,
+        name: String
+
         // location: String,
         // google_map_url: String,
         // operating_hours: String,
@@ -43,21 +44,19 @@ module poc::service {
 
 // ======================== Functions ===================
 
-    fun init(ctx: &mut TxContext){
-    }
-
     public fun create_service(
-        // ToDo - pass required fields
+        name: String,
         ctx: &mut TxContext,
     ) {
         let id = object::new(ctx);
         let service_id = object::uid_to_inner(&id);
-        let service = SERVICE {
+        let service = Service {
             id,
             reward: 1000000000,
             reward_pool: balance::zero(),
             reviews: priority_queue::new<ID>(vector::empty()),
-            recent_reviews: linked_table::new<ID, ID>(ctx)
+            recent_reviews: linked_table::new<ID, ID>(ctx),
+            name
         };
 
         let admin_cap = AdminCap {
@@ -72,20 +71,20 @@ module poc::service {
     }
 
     public fun list_ranked(
-        service: &mut SERVICE, 
+        service: &mut Service, 
     ) {
         // 
     }
 
     public fun list_recent(
-        service: &mut SERVICE, 
+        service: &mut Service, 
     ) {
         // 
     }
 
     public fun write_new_review(
         cap: &AdminCap, // only admin may submit 
-        service: &mut SERVICE, 
+        service: &mut Service, 
         owner: address,
         hash_of_review: vector<u8>, 
         len_of_review: u64,
@@ -95,7 +94,7 @@ module poc::service {
     ) {
         assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
         
-        mint_review(owner, object::uid_to_inner(&service.id), hash_of_review, len_of_review, vm, clock, ctx);
+        new_review(owner, object::uid_to_inner(&service.id), hash_of_review, len_of_review, vm, clock, ctx);
 
         // update reviews, recent_reviews
         // service.recent_reviews
@@ -104,7 +103,7 @@ module poc::service {
 
     public fun distribute_reward(
         cap: &AdminCap,
-        service: &mut SERVICE, 
+        service: &mut Service, 
     ) {
         assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
 
@@ -118,25 +117,25 @@ module poc::service {
 
     public fun recompute_ts_for_all(
         cap: &AdminCap,
-        service: &mut SERVICE
+        service: &mut Service
     ) {
         assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
     }
     
     public fun upvote(
-        service: &mut SERVICE, 
+        service: &mut Service, 
         review_id: ID
     ) {
     }
 
     public fun downvote(
-        service: &mut SERVICE, 
+        service: &mut Service, 
         review_id: ID
     ) {
     }
 
     public fun grant_access_to(
-        service: &mut SERVICE, 
+        service: &mut Service, 
         review_id: ID,
         ctx: &mut TxContext
     ) {

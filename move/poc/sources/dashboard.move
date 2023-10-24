@@ -1,24 +1,26 @@
 module poc::dashboard {
 
+    use std::string::String;
+
     use sui::object::{Self, ID, UID};
-    use sui::vec_set::{Self, VecSet};
-    use sui::tx_context::{Self, sender, TxContext};
     use sui::transfer;
+    use sui::tx_context::TxContext;
+    use sui::vec_set::{Self, VecSet};
 
     struct Dashboard has key, store {
         id: UID,
-        set: VecSet<ID>
+        set: VecSet<ID>,
+        service_type: String
     }
 
-    fun init(ctx: &mut TxContext){
-    }
-
-    public fun create_dashboard(
+    public entry fun create_dashboard(
+        service_type: String,
         ctx: &mut TxContext,
     ) {
         let db = Dashboard {
             id: object::new(ctx),
-            set: vec_set::empty()
+            set: vec_set::empty(),
+            service_type
         };
         transfer::share_object(db);
     }

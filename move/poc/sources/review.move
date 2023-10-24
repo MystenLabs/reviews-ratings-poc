@@ -38,7 +38,7 @@ module poc::review {
         review_id: ID
     }
 
-    public(friend) fun mint_review(owner: address, service_id: ID, hash: vector<u8>, len: u64, vm: u8, clock: &Clock, ctx: &mut TxContext) {
+    public(friend) fun new_review(owner: address, service_id: ID, hash: vector<u8>, len: u64, vm: u8, clock: &Clock, ctx: &mut TxContext) {
         let new_review = Review {
             id: object::new(ctx),
             owner: owner,
@@ -55,7 +55,7 @@ module poc::review {
         transfer::transfer(new_review, owner);
     }
 
-    public(friend) fun get_total_score(rev: &Review, ctx: &mut TxContext): u8 {
+    public(friend) fun get_total_score(rev: &Review): u8 {
         // compute total score
         // TS = (IS + ES) * DR * VM
         // IS = len / 100; max = 1.5, min = 0
