@@ -32,11 +32,11 @@ module poc::incentive_pool {
         let pool = create_pool(pool_amount, ctx);
         let owner = tx_context::sender(ctx);
         transfer::public_transfer(pool, owner);
-
-        // Send pool amount to pool will be executed in ts. 
-        // or we can implement function for sending pool amount to pool
     }
 
-    
-   
+    public fun send_pool_amount(pool_amount: Coin<SUI>, pool: &POOL, _: &mut TxContext) {        
+        let pool_address = object::uid_to_address(&pool.id);
+        transfer::public_transfer(pool_amount, pool_address)
+    }
+
 }

@@ -171,14 +171,16 @@ module poc::service {
         poe_mark
     }
 
-    public fun send_poe_mark(time_stamp: String, reviwer:address ,ctx: &mut TxContext) {
+    public fun send_poe_mark(time_stamp: String, reviwer:address, ctx: &mut TxContext) {
         let poe_mark = mint_poe_mark (time_stamp, ctx);
         transfer::public_transfer(poe_mark, reviwer)
     }
 
-    // public fun add_review(review_hash_string: String, service: &mut SERVICE, ctx: &mut TxContext) {
-         
-    // }
+    public fun add_review(reviewer:address, review_hash_string: String, service: &mut SERVICE, _ctx: &mut TxContext) {
+         let service_reviews = &mut service.review_list;
+         table::add(service_reviews, reviewer, review_hash_string )
+
+    }
 
     public fun add_reviewer(reviewer: address, service: &mut SERVICE) {
         let reviewer_lists_ref = &service.reviewer_lists;
