@@ -3,6 +3,7 @@ module poc::review {
     friend poc::service;
 
     use sui::coin::{Coin, Self};
+    use sui::dynamic_object_field as dof;
     use sui::object::{Self, ID, UID};
     use std::string::String;
     use std::vector;
@@ -17,6 +18,35 @@ module poc::review {
     const EBalanceExceedsTip: u64 = 3;
     const EAlreadyLocked: u64 = 4;
     const ENotEnoughPayment: u64 = 5;
+    const EDownvoteFailed: u64 = 6;
+    const EVotecountNotFound: u64 = 7;
+
+    struct VoteCount has key, store{
+        id: UID,
+        count: u64
+    }
+
+    public fun new_vote_count(rev: &mut Review, ctx: &mut TxContext) {
+        let new_vc = VoteCount {
+            id: object::new(ctx),
+            count: 0
+        };
+        dof::add<ID, VoteCount>(&mut rev.id, rev.service_id, new_vc);
+    }
+
+    public fun get_vote_count_review(rev_id: &mut UID, rev_service_id: ID): &mut VoteCount {
+        assert!(dof::exists_<ID>(rev_id, rev_service_id), EVotecountNotFound);
+        dof::borrow_mut<ID, VoteCount>(rev_id, rev_service_id)
+    }
+
+    public fun upvote(vc: &mut VoteCount) {
+        vc.count = vc.count + 1;
+    }
+
+    public fun downvote(vc: &mut VoteCount) {
+        assert!(vc.count > 0, EDownvoteFailed);
+        vc.count = vc.count - 1;
+    }
 
     struct Review has key, store {
         id: UID,
@@ -25,7 +55,7 @@ module poc::review {
 
         hash: vector<u8>, 
         len: u64, // is: u8
-        votes: u64, // es
+        //votes: u64, // es
         time_issued: u64, // dr: u8,
         vm: u8, // based on proof of experience, either 1 or 1.2
         is_locked: bool,
@@ -45,12 +75,14 @@ module poc::review {
             service_id,
             hash,
             len,
-            votes: 0,
+            //votes: 0,
             time_issued: clock::timestamp_ms(clock),
             vm,
             is_locked: false,
             fee_to_unlock: 1000000000
         };
+
+        new_vote_count(&mut new_review, ctx);
 
         transfer::transfer(new_review, owner);
     }
