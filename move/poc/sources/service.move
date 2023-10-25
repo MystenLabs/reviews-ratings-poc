@@ -5,19 +5,19 @@ module poc::service {
 
     use sui::balance::{Self, Balance};
     use sui::clock::Clock;
-    use sui::linked_table::{Self, LinkedTable};
     use sui::object::{Self, ID, UID};
-    use sui::priority_queue::{Self, PriorityQueue, Entry};
     use sui::sui::SUI;
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
 
+    use poc::multimap::{Self, MultiMap};
     use poc::review::{Self, Review};
 
 // ====================== Consts =======================
 
     const ENoPicture: u64 = 0;
     const EInvalidPermission: u64 = 1;
+    const EMaxReviews: u64 = 2;
 
 // ====================== Structs ======================
 
@@ -30,8 +30,7 @@ module poc::service {
         id: UID,
         reward_pool: Balance<SUI>,
         reward: u64,
-        reviews: PriorityQueue<ID>, // max size < 200
-        recent_reviews: LinkedTable<ID, ID>, //keep last 5 reviews
+        reviews: MultiMap<ID>, // max size < 500
 
         name: String
 
@@ -54,8 +53,7 @@ module poc::service {
             id,
             reward: 1000000000,
             reward_pool: balance::zero(),
-            reviews: priority_queue::new<ID>(vector::empty()),
-            recent_reviews: linked_table::new<ID, ID>(ctx),
+            reviews: multimap::empty<ID>(),
             name
         };
 
@@ -70,18 +68,6 @@ module poc::service {
         transfer::public_transfer(admin_cap, tx_context::sender(ctx));
     }
 
-    public fun list_ranked(
-        service: &mut Service, 
-    ) {
-        // 
-    }
-
-    public fun list_recent(
-        service: &mut Service, 
-    ) {
-        // 
-    }
-
     public fun write_new_review(
         cap: &AdminCap, // only admin may submit 
         service: &mut Service, 
@@ -93,12 +79,9 @@ module poc::service {
         ctx: &mut TxContext
     ) {
         assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
-        
+        assert!(multimap::size<ID>(&service.reviews) < 500, EMaxReviews);
         let (id, ts) = review::new_review(owner, object::uid_to_inner(&service.id), hash_of_review, len_of_review, vm, clock, ctx);
-
-        // update reviews, recent_reviews
-        // service.recent_reviews
-        // service.reviews
+        multimap::insert<ID>(&mut service.reviews, id, ts);
     }
 
     public fun distribute_reward(
@@ -108,7 +91,6 @@ module poc::service {
         assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
 
         // distribute a fixed amount to top 10 reviewers
-
     }
 
     // public fun generate_proof_of_experience() {
@@ -122,12 +104,15 @@ module poc::service {
         assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
     }
 
-    public fun reorder(rev: &mut Review) {
-        // DON't DO THIS HERE: review::update_total_score(rev);
-        // ToDo: remove existing review from priority_queue and insert back
+    public fun reorder(
+        service: &mut Service,
+        rev: &Review
+    ) {
+        // remove existing review from multimap and insert back
+        let id = review::get_id(rev);
+        let ts = review::get_total_score(rev);
+        multimap::remove<ID>(&mut service.reviews, &id);
+        multimap::insert<ID>(&mut service.reviews, id, ts);
     }
 
-    // how to upvote/downvote in programmable tx
-    // 1. call either upvote or downvote
-    // 2. call reorder
 }

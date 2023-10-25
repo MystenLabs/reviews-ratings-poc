@@ -39,7 +39,7 @@ module poc::review {
         review_id: ID
     }
 
-    public(friend) fun new_review(
+    public fun new_review(
         owner: address, 
         service_id: ID, 
         hash: vector<u8>, 
@@ -121,6 +121,14 @@ module poc::review {
         assert!(rev.votes > 0, EMaxDownvoteReached);
         rev.votes = rev.votes - 1;
         update_total_score(rev);
+    }
+
+    public fun get_id(rev: &Review): ID {
+        object::uid_to_inner(&rev.id)
+    }
+
+    public fun get_total_score(rev: &Review): u64 {
+        rev.ts
     }
 
 }
