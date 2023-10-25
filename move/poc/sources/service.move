@@ -10,9 +10,9 @@ module poc::service {
     use sui::priority_queue::{Self, PriorityQueue, Entry};
     use sui::sui::SUI;
     use sui::transfer;
-    use sui::tx_context::{Self, sender, TxContext};
+    use sui::tx_context::{Self, TxContext};
 
-    use poc::review::{new_review, get_total_score, grant_access};
+    use poc::review::{Self, Review};
 
 // ====================== Consts =======================
 
@@ -67,7 +67,7 @@ module poc::service {
         // ToDo - add event emit
 
         transfer::share_object(service);
-        transfer::public_transfer(admin_cap, sender(ctx));
+        transfer::public_transfer(admin_cap, tx_context::sender(ctx));
     }
 
     public fun list_ranked(
@@ -94,7 +94,7 @@ module poc::service {
     ) {
         assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
         
-        new_review(owner, object::uid_to_inner(&service.id), hash_of_review, len_of_review, vm, clock, ctx);
+        let (id, ts) = review::new_review(owner, object::uid_to_inner(&service.id), hash_of_review, len_of_review, vm, clock, ctx);
 
         // update reviews, recent_reviews
         // service.recent_reviews
@@ -121,25 +121,13 @@ module poc::service {
     ) {
         assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
     }
-    
-    public fun upvote(
-        service: &mut Service, 
-        review_id: ID
-    ) {
+
+    public fun reorder(rev: &mut Review) {
+        // DON't DO THIS HERE: review::update_total_score(rev);
+        // ToDo: remove existing review from priority_queue and insert back
     }
 
-    public fun downvote(
-        service: &mut Service, 
-        review_id: ID
-    ) {
-    }
-
-    public fun grant_access_to(
-        service: &mut Service, 
-        review_id: ID,
-        ctx: &mut TxContext
-    ) {
-        // grant_access()
-    }
-
+    // how to upvote/downvote in programmable tx
+    // 1. call either upvote or downvote
+    // 2. call reorder
 }
