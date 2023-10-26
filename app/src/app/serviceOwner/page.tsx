@@ -21,6 +21,8 @@ const ServiceOwnerPage = () => {
     }[]
   );
   const [serviceName, setServiceName] = useState("");
+  const [reviewAdded, setReviewAdded] = useState(false);
+
   const handleServiceNameChange = (event: ChangeEvent<HTMLInputElement>) => {
     setServiceName(event.target.value);
   };
@@ -49,6 +51,7 @@ const ServiceOwnerPage = () => {
         showObjectChanges: true,
       },
     });
+    setReviewAdded(true);
     console.dir(resp, { depth: null });
     console.log(`create_service finished`);
   };
@@ -56,6 +59,9 @@ const ServiceOwnerPage = () => {
   useEffect(() => {
     if (currentAccount === null || currentAccount === undefined) {
       return;
+    }
+    if (reviewAdded) {
+      setReviewAdded(false);
     }
 
     const address = currentAccount.address;
@@ -87,7 +93,7 @@ const ServiceOwnerPage = () => {
     }
 
     getServies();
-  }, [currentAccount]); // The empty array as the second argument makes this effect run only once on mount
+  }, [currentAccount, reviewAdded]);
 
   return (
     <div className="container">
