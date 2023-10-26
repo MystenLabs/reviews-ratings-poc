@@ -71,18 +71,34 @@ module poc::service {
     }
 
     public fun write_new_review(
-        cap: &AdminCap, // only admin may submit 
+        cap: &AdminCap,
         service: &mut Service, 
         owner: address,
         hash_of_review: vector<u8>, 
         len_of_review: u64,
-        has_poe: bool,
         clock: &Clock,
         ctx: &mut TxContext
     ) {
+        // Only admin(service owner) can submit a review
+        // after verifying that reviewer has proof of experience (QR code)
         assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
         assert!(multimap::size<ID>(&service.reviews) < 500, EMaxReviews);
-        let (id, ts) = review::new_review(owner, object::uid_to_inner(&service.id), hash_of_review, len_of_review, has_poe, clock, ctx);
+        let (id, ts) = review::new_review(owner, object::uid_to_inner(&service.id), hash_of_review, len_of_review, true, clock, ctx);
+        multimap::insert<ID>(&mut service.reviews, id, ts);
+    }
+
+    public fun write_new_review_without_poe(
+        service: &mut Service, 
+        owner: address,
+        hash_of_review: vector<u8>, 
+        len_of_review: u64,
+        clock: &Clock,
+        ctx: &mut TxContext
+    ) {
+        // DANGER: anyone can submit a review, without going to through any screening
+        // This fun could be removed in future the versions
+        assert!(multimap::size<ID>(&service.reviews) < 500, EMaxReviews);
+        let (id, ts) = review::new_review(owner, object::uid_to_inner(&service.id), hash_of_review, len_of_review, false, clock, ctx);
         multimap::insert<ID>(&mut service.reviews, id, ts);
     }
 
