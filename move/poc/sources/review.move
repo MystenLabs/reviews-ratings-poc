@@ -6,6 +6,7 @@ module poc::review {
 
     use sui::clock::{Self, Clock};
     use sui::coin::{Coin, Self};
+    use sui::math;
     use sui::object::{Self, ID, UID};
     use sui::sui::SUI;
     use sui::transfer;
@@ -27,7 +28,7 @@ module poc::review {
         len: u64, // is
         votes: u64, // es
         time_issued: u64, // dr
-        vm: u8, // based on proof of experience, either 1 or 1.2
+        has_poe: bool, // vm: proof of experience
         ts: u64, // total score
         is_locked: bool,
         fee_to_unlock: u64
@@ -44,7 +45,7 @@ module poc::review {
         service_id: ID, 
         hash: vector<u8>, 
         len: u64, 
-        vm: u8, 
+        has_poe: bool, 
         clock: &Clock, 
         ctx: &mut TxContext
     ): (ID, u64) {
@@ -54,9 +55,9 @@ module poc::review {
             service_id,
             hash,
             len,
-            votes: 100, // start with 100, can go down to 0
+            votes: 10, // start with 10, can go down to 0
             time_issued: clock::timestamp_ms(clock),
-            vm,
+            has_poe,
             ts: 0,
             is_locked: false,
             fee_to_unlock: 1000000000
@@ -71,13 +72,27 @@ module poc::review {
     }
 
     fun calculate_total_score(rev: &Review): u64 {
-        // compute total score
+        // compute total score 
+        // Result is in 2 decimals points in precision; 100 is actually 1
         // TS = (IS + ES) * DR * VM
+
         // IS = len / 100; max = 1.5, min = 0
-        // ES = # of upvotes; 1 + (0.1 * per upvotes), min = 0
+        let is: u64 = rev.len;
+        is = math::max(is, 150);
+        
+        // ES = # of upvotes; 1 + (0.1 * per upvotes)
+        let es: u64 = 10 * rev.votes;
+        
         // DR = days remaining until expired; expires in 180 days
-        // VR = either 1.0 or 1.2 (if user has proof of experience)
-        100
+        // ToDo
+
+        // VM = either 1.0 or 1.2 (if user has proof of experience)
+        let vm: u64 = 100;
+        if (rev.has_poe == true) {
+            vm = 120;
+        };
+
+        (is + es) * vm
     }
 
     public fun update_total_score(rev: &mut Review) {

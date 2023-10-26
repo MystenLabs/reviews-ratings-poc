@@ -74,13 +74,13 @@ module poc::service {
         owner: address,
         hash_of_review: vector<u8>, 
         len_of_review: u64,
-        vm: u8,
+        has_poe: bool,
         clock: &Clock,
         ctx: &mut TxContext
     ) {
         assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
         assert!(multimap::size<ID>(&service.reviews) < 500, EMaxReviews);
-        let (id, ts) = review::new_review(owner, object::uid_to_inner(&service.id), hash_of_review, len_of_review, vm, clock, ctx);
+        let (id, ts) = review::new_review(owner, object::uid_to_inner(&service.id), hash_of_review, len_of_review, has_poe, clock, ctx);
         multimap::insert<ID>(&mut service.reviews, id, ts);
     }
 
