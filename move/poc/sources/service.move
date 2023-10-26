@@ -46,7 +46,7 @@ module poc::service {
     public fun create_service(
         name: String,
         ctx: &mut TxContext,
-    ) {
+    ): ID {
         let id = object::new(ctx);
         let service_id = object::uid_to_inner(&id);
         let service = Service {
@@ -64,8 +64,10 @@ module poc::service {
 
         // ToDo - add event emit
 
+        let id = object::uid_to_inner(&service.id);
         transfer::share_object(service);
         transfer::public_transfer(admin_cap, tx_context::sender(ctx));
+        id
     }
 
     public fun write_new_review(
