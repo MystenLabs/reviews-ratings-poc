@@ -1,32 +1,58 @@
-
+import { useWalletKit } from "@mysten/wallet-kit"
 import { toast } from "react-hot-toast";
 import { Result } from "../types/Result";
+import { useState } from "react";
+import { useSui } from "./useSui";
+import { TransactionBlock } from "@mysten/sui.js/transactions";
 
+export const useDashboardRegisterService = (dashboard_obj: any ,service_id: string ) => {
+  const { executeSignedTransactionBlock } = useSui();
+  const { signTransactionBlock } = useWalletKit();
+  const [isLoading, setIsLoading] = useState(false);
 
-export const useRegisterService = async (
-    onSuccess: any, 
-    serviceId: string, 
-    dashBoard: string, 
-    setIsLoading: any
-    ) => {
-    fetch("/api/dashboard/register", {
-      method: "POST",
-      body: JSON.stringify({ serviceId, dashBoard }),
-    })
-      .then((res) => res.json())
-      .then((res) => {
-        if (res.error) {
-          throw new Error(res.error);
-        }
-        const createRes = res as Re;
-        console.log("maskedQuestions", createRes);
-        // Need to add transaction Digest or Dashboard obejct ID. 
-        // onSuccess(quizId);
+  const tx = new TransactionBlock();
+  tx.moveCall({
+    target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::dashboard::register_service`,
+    arguments: [
+      tx.object(dashboard_obj),
+      tx.pure(service_id),
+    ],
+  });
+  setIsLoading(true);
+  console.log("useDashboardRegisterService, signing transaction block...");
+  return signTransactionBlock({
+    transactionBlock: tx,
+  })
+    .then((signedTx: any) => {
+      return executeSignedTransactionBlock({
+        signedTx,
+        requestType: "WaitForLocalExecution",
+        options: {
+          showEffects: true,
+          showEvents: true,
+        },
       })
-      .catch((err) => {
-        console.log("Register service to Dashboard failed", err);
-        toast.error("Something went wrong, could not register service to dashboard.");
-        setIsLoading(false);
-        return;
-      });
-  };
+        .then((resp) => {
+          console.log(resp);
+          if (resp.effects?.status.status === "success") {
+            console.log("Service registered");
+            toast.success("Service registered");
+            return 
+          } else {
+            console.log("Service registered to dashboard failed");
+            toast.error("Service registered to dashboard failed.");
+          }
+        })
+        .catch((err) => {
+          setIsLoading(false);
+          console.log("Service registered to dashboard failed");
+          console.log(err);
+          toast.error("Something went wrong, Service could not be registered.");
+        });
+    })
+    .catch(() => {
+      setIsLoading(false);
+      console.log("Error while signing tx");
+    });
+};
+
