@@ -22,6 +22,7 @@
     "next": "13.4.9",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-hot-toast": "^2.4.1",
     "typescript": "5.1.6",
     "utf-8-validate": "^5.0.10"
   },
