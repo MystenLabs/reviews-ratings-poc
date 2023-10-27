@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useSui } from "./useSui";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 
+// has to be async
 export const useDashboardCreation = (service_type: string ) => {
   const { executeSignedTransactionBlock } = useSui();
   const { signTransactionBlock } = useWalletKit();

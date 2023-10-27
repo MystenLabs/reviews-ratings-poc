@@ -26,7 +26,21 @@ export const useReviewGrantAccess = (
   });
   
   setIsLoading(true);
-  console.log("useDashboardRegisterService, signing transaction block...");
+  tx.transferObjects([sendReviewTip], tx.pure(recipient),);
+  console.log("useReviewGrantAccess, signing transaction block...");
+  const signedTx =  signTransactionBlock({
+    transactionBlock: tx,
+  });
+  const resp = executeSignedTransactionBlock({
+    signedTx,
+    requestType: "WaitForLocalExecution",
+    options: {
+      showEffects: true,
+      showEvents: true,
+    },
+  });
+  console.log(resp);
+  return 
   return signTransactionBlock({
     transactionBlock: tx,
   })
@@ -42,19 +56,19 @@ export const useReviewGrantAccess = (
         .then((resp) => {
           console.log(resp);
           if (resp.effects?.status.status === "success") {
-            console.log("Service registered");
-            toast.success("Service registered");
+            console.log("user granted access to review");
+            toast.success("user granted access to review");
             return 
           } else {
-            console.log("Service registered to dashboard failed");
-            toast.error("Service registered to dashboard failed.");
+            console.log("user granted access to review failed");
+            toast.error("user granted access to review failed");
           }
         })
         .catch((err) => {
           setIsLoading(false);
-          console.log("Service registered to dashboard failed");
+          console.log("user granted access to review failed");
           console.log(err);
-          toast.error("Something went wrong, Service could not be registered.");
+          toast.error("Something went wrong,user granted access to review failed.");
         });
     })
     .catch(() => {
