@@ -14,7 +14,10 @@ export const Navbar = () => {
   const { user, handleLogout } = useAuthentication();
 
   return (
-    <div className="grid grid-cols-12 w-full items-center p-[8px] h-[80px] border-b-gray-400 border-b-[1px] sticky top-0">
+    <div className="grid grid-cols-12 w-full items-center p-[8px] h-[80px] border-b-gray-400 border-b-[1px] sticky top-0"
+    style={{
+      background: "white",
+    }}>
       <div className="col-span-3 flex space-x-3 items-center">
         <div className="text-xl text-red-600 text-2xl font-bold">Restaurant Reviews</div>
       </div>

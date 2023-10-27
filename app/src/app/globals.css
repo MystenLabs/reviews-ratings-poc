@@ -9,8 +9,16 @@
 }
 
 body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
   color: rgb(var(--foreground-rgb));
   background: rgb(var(--background-end-rgb));
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
 }
 
 h3 {
