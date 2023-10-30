@@ -14,59 +14,59 @@ export const useReviewAddNew = () => {
     const [isLoading, setIsLoading] = useState(false);
     const tx = new TransactionBlock();
     
-    const handleAddNewReview = async (
-        owner_address: string, 
-        service_id: string, 
-        hash: string, 
-        length: number, 
-        has_poe: boolean
-    ) : Promise<[string, number]> => {
-        try{
-            tx.moveCall({
-                target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::review::new_review`,
-                arguments: [
-                    tx.object(owner_address),
-                    tx.object(service_id),
-                    tx.pure(hash), // has to be changed to something compatible with vector<u8>,
-                    tx.pure(length),
-                    tx.pure(has_poe),
-                    tx.object(SUI_CLOCK_OBJECT_ID),
-                ],
-            });
-            setIsLoading(true);
-            console.log("addReview, signing transaction block...");
-            const signedTx = await signTransactionBlock({
-                transactionBlock: tx,
-            });
-            const resp = await executeSignedTransactionBlock({
-                signedTx,
-                requestType: "WaitForLocalExecution",
-                options: {
-                    showEffects: true,
-                    showEvents: true,
-                },
-            });
-            console.log(resp);
+    // const handleAddNewReview = async (
+    //     owner_address: string, 
+    //     service_id: string, 
+    //     hash: string, 
+    //     length: number, 
+    //     has_poe: boolean
+    // ) : Promise<[string, number]> => {
+    //     try{
+    //         tx.moveCall({
+    //             target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::review::new_review`,
+    //             arguments: [
+    //                 tx.object(owner_address),
+    //                 tx.object(service_id),
+    //                 tx.pure(hash), // has to be changed to something compatible with vector<u8>,
+    //                 tx.pure(length),
+    //                 tx.pure(has_poe),
+    //                 tx.object(SUI_CLOCK_OBJECT_ID),
+    //             ],
+    //         });
+    //         setIsLoading(true);
+    //         console.log("addReview, signing transaction block...");
+    //         const signedTx = await signTransactionBlock({
+    //             transactionBlock: tx,
+    //         });
+    //         const resp = await executeSignedTransactionBlock({
+    //             signedTx,
+    //             requestType: "WaitForLocalExecution",
+    //             options: {
+    //                 showEffects: true,
+    //                 showEvents: true,
+    //             },
+    //         });
+    //         console.log(resp);
             
-            if (resp.effects?.status.status === "success") {
-                setIsLoading(false);
-                console.log("Review newly created");
-                toast.success("Review newly created.");
-                return ["", 0] 
-            } else {
-                setIsLoading(false);
-                console.log("Review creation failed");
-                toast.error("Review creation failed.");
-                return ["", 0]
-            }
-        }catch(err) {
-            setIsLoading(false);
-            console.log("Review creation failed");
-            console.log(err);
-            toast.error("Review creation failed.");
-            return ["", 0]
-        }
-    }
-    return { handleAddNewReview }
+    //         if (resp.effects?.status.status === "success") {
+    //             setIsLoading(false);
+    //             console.log("Review newly created");
+    //             toast.success("Review newly created.");
+    //             return ["", 0] 
+    //         } else {
+    //             setIsLoading(false);
+    //             console.log("Review creation failed");
+    //             toast.error("Review creation failed.");
+    //             return ["", 0]
+    //         }
+    //     }catch(err) {
+    //         setIsLoading(false);
+    //         console.log("Review creation failed");
+    //         console.log(err);
+    //         toast.error("Review creation failed.");
+    //         return ["", 0]
+    //     }
+    // }
+    // return { handleAddNewReview }
 
 };
