@@ -163,4 +163,56 @@ module poc::multimap {
         (key, priority)
     }
 
+    #[test]
+    fun test_insert() {
+        let h = empty();
+
+        insert(&mut h, 10, 10);
+        check_max(&h, 10);
+        
+        insert(&mut h, 20, 20);
+        check_max(&h, 20);
+
+        insert(&mut h, 40, 40);
+        check_max(&h, 40);
+
+        insert(&mut h, 30, 30);
+        check_max(&h, 40);
+
+        std::debug::print(&h);
+
+        check_pop_max(&mut h, 40);
+        check_pop_max(&mut h, 30);
+        check_pop_max(&mut h, 20);
+        check_pop_max(&mut h, 10);
+
+        std::debug::print(&h);
+    }
+
+    #[test]
+    fun test_insert_many() {
+        let h = empty();
+        insert(&mut h, 126, 126);
+        insert(&mut h, 207, 207);
+        insert(&mut h, 157, 157);
+        insert(&mut h, 216, 216);
+        insert(&mut h, 188, 188);
+        insert(&mut h, 219, 219);
+        insert(&mut h, 217, 217);
+        insert(&mut h, 249, 249);
+        std::debug::print(&h);
+    }
+
+    #[test_only]
+    fun check_pop_max(h: &mut MultiMap<u64>, expected_priority: u64) {
+        let (_key, priority) = remove_entry_by_idx(h, 0);
+        assert!(priority == expected_priority, 0);
+    }
+
+    #[test_only]
+    fun check_max(h: &MultiMap<u64>, expected_priority: u64) {
+        let (_key, priority) = get_entry_by_idx(h, 0);
+        assert!(priority == &expected_priority, 0);
+    }
+
 }
