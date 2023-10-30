@@ -3,11 +3,11 @@ import { useEffect, useState } from "react";
 import { useSui } from "./useSui";
 import { SuiMoveObject } from "@mysten/sui.js";
 
-export const useGetReviews = (serviceId: string) => {
+export const useGetServices = (dashboardId: string) => {
   const { currentAccount } = useWalletKit();
   const { suiClient } = useSui();
 
-  const [data, setData] = useState<any[]>([]);
+  const [serviceList, setServiceList] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
 
@@ -15,7 +15,7 @@ export const useGetReviews = (serviceId: string) => {
     if (!!currentAccount?.address) {
       reFetchData();
     } else {
-      setData([]);
+      setServiceList([]);
       setIsLoading(false);
       setIsError(false);
     }
@@ -24,32 +24,31 @@ export const useGetReviews = (serviceId: string) => {
   const reFetchData = async () => {
     setIsLoading(true);
 
-    console.log(`fetching obj_id=${serviceId}`);
+    console.log(`fetching obj_id=${dashboardId}`);
 
     suiClient
       .getObject({
-        id: serviceId,
+        id: dashboardId,
         options: {
           showContent: true,
         },
       })
       .then((res) => {
-        console.log(res);
-        setData((res.data?.content as SuiMoveObject).fields
-        .reviews.fields.contents);
+        console.log(`res: ${JSON.stringify(res.data)}`);
+        setServiceList((res.data?.content as SuiMoveObject).fields.set.fields.contents);
         setIsLoading(false);
         setIsError(false);
       })
       .catch((err) => {
         console.log(err);
-        setData([]);
+        setServiceList([]);
         setIsLoading(false);
         setIsError(true);
       });
   };
 
   return {
-    data,
+    serviceList,
     isLoading,
     isError,
     reFetchData,

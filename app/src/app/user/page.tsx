@@ -7,7 +7,7 @@ const UserPage = () => {
   return (
     <div>
       <h1>Services</h1>
-      <Services onAdd={()=>{}} />
+      <Services />
     </div>
   );
 };

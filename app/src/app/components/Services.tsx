@@ -4,15 +4,15 @@ import { SuiMoveObject } from "@mysten/sui.js";
 import { useAuthentication } from "../hooks/useAuthentication";
 import { useRouter } from "next/navigation";
 import { Service as ServiceType } from "../types/Service";
+import { useGetServices } from "../hooks/useGetServices";
 
-interface ServicesProps {
-  onAdd: () => void;
-}
-
-export const Services = ({ onAdd }: ServicesProps) => {
+export const Services = () => {
   const { suiClient } = useSui();
   const { user } = useAuthentication();
   const router = useRouter();
+  const { serviceList, isLoading, currentAccount } = useGetServices(
+    process.env.NEXT_PUBLIC_DASHBOARD_ID as string
+  );
 
   const [services, setServices] = useState([] as ServiceType[]);
 
@@ -22,14 +22,9 @@ export const Services = ({ onAdd }: ServicesProps) => {
 
   useEffect(() => {
     async function getServies() {
-      const dashboardResp = await suiClient.getObject({
-        id: `${process.env.NEXT_PUBLIC_DASHBOARD_ID}`,
-        options: { showContent: true },
-      });
-      console.log(`dashboardResp: ${JSON.stringify(dashboardResp.data)}`);
-
-      const serviceList = (dashboardResp.data?.content as SuiMoveObject).fields
-        .set.fields.contents;
+      if (isLoading) {
+        return;
+      }
       console.log(`serviceList: ${JSON.stringify(serviceList)}`);
 
       const servicesPromises = serviceList.map(async (serviceId: string) => {
@@ -43,12 +38,10 @@ export const Services = ({ onAdd }: ServicesProps) => {
         return service;
       });
       setServices(await Promise.all(servicesPromises));
-
-      return dashboardResp.data;
     }
 
     getServies();
-  }, [onAdd]);
+  }, [currentAccount, isLoading, serviceList]);
 
   return (
     <div className="container">
