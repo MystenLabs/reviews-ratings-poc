@@ -40,22 +40,31 @@ module poc::multimap {
     /// Aborts if `key` is already bound in `self`.
     public fun insert<K: copy>(self: &mut MultiMap<K>, key: K, priority: u64) {
         assert!(!contains(self, &key), EKeyAlreadyExists);
-        vector::push_back(&mut self.contents, Entry { key, priority });
-
-        let index = vector::length(&self.contents) - 1;
-        restore_heap_recursive(&mut self.contents, index);
+        let len = vector::length(&self.contents);
+        if (len == 0) {
+            vector::push_back(&mut self.contents, Entry { key, priority });
+        } else {
+            insert_recursive(&mut self.contents, Entry { key, priority }, 0, len - 1);
+        }
     }
-    fun restore_heap_recursive<K: copy>(v: &mut vector<Entry<K>>, i: u64) {
-        if (i == 0) {
-            return
-        };
-        let parent = (i - 1) / 2;
 
-        // If new elem is greater than its parent, swap them and recursively
-        // do the restoration upwards.
-        if (vector::borrow(v, i).priority > vector::borrow(v, parent).priority) {
-            vector::swap(v, i, parent);
-            restore_heap_recursive(v, parent);
+    fun insert_recursive<K: copy>(v: &mut vector<Entry<K>>, e: Entry<K>, left: u64, right: u64) {
+        if (left > right) {
+            vector::insert(v, e, left);
+        } else {
+            let mid = (left + right) / 2;
+            let ele = vector::borrow(v, mid);
+            if (e.priority == ele.priority) {
+                vector::insert(v, e, mid);
+            } else if (e.priority > ele.priority) {
+                if (mid == 0) {
+                    vector::insert(v, e, left);
+                } else {
+                    insert_recursive(v, e, left, mid - 1);
+                }
+            } else {
+                insert_recursive(v, e, mid + 1, right);
+            }
         }
     }
 
@@ -192,6 +201,7 @@ module poc::multimap {
     #[test]
     fun test_insert_many() {
         let h = empty();
+
         insert(&mut h, 126, 126);
         insert(&mut h, 207, 207);
         insert(&mut h, 157, 157);
@@ -201,6 +211,13 @@ module poc::multimap {
         insert(&mut h, 217, 217);
         insert(&mut h, 249, 249);
         std::debug::print(&h);
+
+        check_pop_max(&mut h, 249);
+        check_pop_max(&mut h, 219);
+        check_pop_max(&mut h, 217);
+
+        std::debug::print(&h);
+        check_pop_max(&mut h, 216);
     }
 
     #[test_only]
