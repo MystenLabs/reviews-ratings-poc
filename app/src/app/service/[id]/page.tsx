@@ -19,7 +19,7 @@ interface ReviewItem {
 export default function Service() {
   const { signAndExecuteTransactionBlock } = useWalletKit();
   const { id } = useParams();
-  const { data, isLoading, currentAccount } = useGetReviews(id);
+  const { dataReviews, dataName, isLoading, currentAccount } = useGetReviews(id);
 
   const [reviews, setReviews] = useState([] as ReviewType[]);
 
@@ -31,9 +31,9 @@ export default function Service() {
       if (isLoading) {
         return;
       }
-      console.dir(`reviews: ${JSON.stringify(data)} size=${data.length}`);
+      console.dir(`reviews: ${JSON.stringify(dataReviews)} size=${dataReviews.length}`);
 
-      const reviewsPromises = data.map(async (item: ReviewItem) => {
+      const reviewsPromises = dataReviews.map(async (item: ReviewItem) => {
         console.log(`review: ${JSON.stringify(item)}`);
         console.log(` key > : ${item.fields.key}`);
         console.log(` priority > : ${item.fields.priority}`);
@@ -45,7 +45,7 @@ export default function Service() {
     }
 
     getReviews();
-  }, [currentAccount, isLoading, data]);
+  }, [currentAccount, isLoading, dataReviews]);
 
   const create_review = async (): Promise<void> => {
     const tx = new TransactionBlock();
@@ -77,10 +77,8 @@ export default function Service() {
   return (
     <div>
       <h1>Service</h1>
-      <div>Name: {`name`}</div>
+      <div>Name: {`${dataName}`}</div>
       <div>Id: {`${id}`}</div>
-      <div>Data: {`${data.length}`}</div>
-
       <div>
         <div>Reviews: {`${reviews.length}`}</div>
         {reviews.length > 0 && (

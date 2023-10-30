@@ -7,7 +7,8 @@ export const useGetReviews = (serviceId: string) => {
   const { currentAccount } = useWalletKit();
   const { suiClient } = useSui();
 
-  const [data, setData] = useState<any[]>([]);
+  const [dataReviews, setDataReviews] = useState<any[]>([]);
+  const [dataName, setName] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
 
@@ -15,7 +16,8 @@ export const useGetReviews = (serviceId: string) => {
     if (!!currentAccount?.address) {
       reFetchData();
     } else {
-      setData([]);
+      setDataReviews([]);
+      setName("");
       setIsLoading(false);
       setIsError(false);
     }
@@ -35,21 +37,23 @@ export const useGetReviews = (serviceId: string) => {
       })
       .then((res) => {
         console.log(res);
-        setData((res.data?.content as SuiMoveObject).fields
-        .reviews.fields.contents);
+        setDataReviews((res.data?.content as SuiMoveObject).fields.reviews.fields.contents);
+        setName((res.data?.content as SuiMoveObject).fields.name);
         setIsLoading(false);
         setIsError(false);
       })
       .catch((err) => {
         console.log(err);
-        setData([]);
+        setDataReviews([]);
+        setName("");
         setIsLoading(false);
         setIsError(true);
       });
   };
 
   return {
-    data,
+    dataReviews,
+    dataName,
     isLoading,
     isError,
     reFetchData,
