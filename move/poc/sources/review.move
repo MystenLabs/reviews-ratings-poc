@@ -78,7 +78,7 @@ module poc::review {
 
         // IS = len / 100; max = 1.5, min = 0
         let is: u64 = rev.len;
-        is = math::max(is, 150);
+        is = math::min(is, 150);
         
         // ES = # of upvotes; 1 + (0.1 * per upvotes)
         let es: u64 = 10 * rev.votes;
@@ -86,10 +86,10 @@ module poc::review {
         // DR = days remaining until expired; expires in 180 days
         // ToDo
 
-        // VM = either 1.0 or 1.2 (if user has proof of experience)
-        let vm: u64 = 100;
+        // VM = either 1.0 or 2.0 (if user has proof of experience)
+        let vm: u64 = 1;
         if (rev.has_poe == true) {
-            vm = 120;
+            vm = 2;
         };
 
         (is + es) * vm
