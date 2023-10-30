@@ -8,9 +8,10 @@ import { TransactionBlock } from "@mysten/sui.js/transactions";
 export const useServiceCreation = () => {
     const { executeSignedTransactionBlock } = useSui();
     const { signTransactionBlock } = useWalletKit();
-    const [isLoading, setIsLoading] = useState(false);
 
-    const create_service = async(name: String): Promise<string> => {
+    const handleServiceCreation = async(
+        name: String,
+        setIsLoading: any): Promise<string> => {
         const tx = new TransactionBlock();
         tx.moveCall({
             target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::service::create_service`,
@@ -59,6 +60,6 @@ export const useServiceCreation = () => {
                     return ""
                 });
             }
-        
+    return { handleServiceCreation }
 
 }

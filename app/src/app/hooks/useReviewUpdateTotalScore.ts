@@ -5,17 +5,19 @@ import { useWalletKit } from "@mysten/wallet-kit"
 import { useSui } from "./useSui";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 
-export const useReviewUpdateTotalScore = (review_obj: string) => {
+export const useReviewUpdateTotalScore = () => {
   const { executeSignedTransactionBlock } = useSui();
   const { signTransactionBlock } = useWalletKit();
-  const [isLoading, setIsLoading] = useState(false);
 
-    const update = async(reviewObj: string) => {
+    const handleUpdateReviewTotalScore = async(
+      reviewObj: string,
+      setIsLoading: any
+      ) => {
         const tx = new TransactionBlock();
         tx.moveCall({
           target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::review::update_total_score`,
           arguments: [
-            tx.object(review_obj),
+            tx.object(reviewObj),
           ],
         });
         setIsLoading(true);
@@ -57,5 +59,5 @@ export const useReviewUpdateTotalScore = (review_obj: string) => {
                 console.log("Error while signing tx");
             });
         }
-
+    return { handleUpdateReviewTotalScore }
 }

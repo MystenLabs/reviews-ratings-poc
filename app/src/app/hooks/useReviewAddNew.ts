@@ -14,7 +14,7 @@ export const useReviewAddNew = () => {
     const [isLoading, setIsLoading] = useState(false);
     const tx = new TransactionBlock();
     
-    const addReview = async (
+    const handleAddNewReview = async (
         owner_address: string, 
         service_id: string, 
         hash: string, 
@@ -67,5 +67,6 @@ export const useReviewAddNew = () => {
             return ["", 0]
         }
     }
+    return { handleAddNewReview }
 
 };

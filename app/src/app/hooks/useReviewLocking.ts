@@ -9,9 +9,11 @@ import { TransactionBlock } from "@mysten/sui.js/transactions";
 export const useReviewLocking = () => {
     const { executeSignedTransactionBlock } = useSui();
     const { signTransactionBlock } = useWalletKit();
-    const [isLoading, setIsLoading] = useState(false);
 
-    const locking = async(reviewObj: string) => {
+    const handleReviewLocking = async(
+        reviewObj: string,
+        setIsLoading: any
+        ) => {
         const tx = new TransactionBlock();
         tx.moveCall({
           target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::review::lock`,
@@ -58,5 +60,6 @@ export const useReviewLocking = () => {
                 console.log("Error while signing tx");
             });
         }
+    return { handleReviewLocking }
 
 };

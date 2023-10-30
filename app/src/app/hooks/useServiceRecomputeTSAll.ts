@@ -5,24 +5,24 @@ import { useState } from "react";
 import { useSui } from "./useSui";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 
-export const useServiceReviewDistribution = () => {
+export const useServiceRecomputeTSAll = () => {
     const { executeSignedTransactionBlock } = useSui();
     const { signTransactionBlock } = useWalletKit();
 
-    const handleRewardDistribution = async(
-        adminCap:string, 
-        reviewObj: string,
+    const handleRecomputeTotalScore = async(
+        adminCap: string, 
+        service: string,
         setIsLoading: any) => {
         const tx = new TransactionBlock();
         tx.moveCall({
-            target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::review::distribute_reward`,
+            target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::service::recompute_ts_for_all`,
             arguments: [
                 tx.object(adminCap),
-                tx.object(reviewObj),
+                tx.object(service),
             ],
         });
         setIsLoading(true);
-        console.log("distribute reward, signing transaction block...");
+        console.log("recompute all total score, signing transaction block...");
         return signTransactionBlock({
             transactionBlock: tx,
         }).then((signedTx: any) => {
@@ -37,22 +37,21 @@ export const useServiceReviewDistribution = () => {
                 setIsLoading(false);
                 console.log(resp);
                 if (resp.effects?.status.status === "success") {
-                    console.log("Reward distributed");
-                    toast.success("Reward distributed");
+                    console.log("Total score updated");
+                    toast.success("Total score updated");
                     return
                 } else {
-                    console.log("Reward distribution failed");
-                    toast.error("Reward distribution failed.");
+                    console.log("Total score update failed");
+                    toast.error("Total score update failed.");
                     return
                 }
             }).catch((err) => {
                 setIsLoading(false);
-                console.log("Reward distribution failed");
+                console.log("Total score update failed");
                 console.log(err);
-                toast.error("Something went wrong, Reward distribution failed.");
+                toast.error("Something went wrong, Total score update failed.");
             });
         })
-    }
-    return { handleRewardDistribution };
-
+    };
+    return { handleRecomputeTotalScore };
 }

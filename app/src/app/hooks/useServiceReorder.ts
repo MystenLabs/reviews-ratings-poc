@@ -5,39 +5,29 @@ import { useState } from "react";
 import { useSui } from "./useSui";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 
-
-export const useReviewVoting = () => {
+export const useServiceReorder = () => {
     const { executeSignedTransactionBlock } = useSui();
     const { signTransactionBlock } = useWalletKit();
-    const [isLoading, setIsLoading] = useState(false);
+    
 
-    const upvote_tx_block = async(reviewObj: string) => {
+    const handleServiceReviewReordering = async(
+        serviceObj: string, 
+        review: string,
+        setIsLoading: any) => {
         const tx = new TransactionBlock();
         tx.moveCall({
-            target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::review::upvote`,
-            arguments: [
-                tx.object(reviewObj),
-            ],
-            });
-        excute_vote_transaction(tx);
-    }
-
-    const downvote_tx_block = async(reviewObj: string) => {
-        const tx = new TransactionBlock();
-        tx.moveCall({
-            target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::review::downvote`,
-            arguments: [
-                tx.object(reviewObj),
-            ],
-            });
-        excute_vote_transaction(tx);
-    }
-
-    const excute_vote_transaction = async (tx: TransactionBlock) => {
+          target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::service::reorder`,
+          arguments: [
+            tx.object(serviceObj),
+            tx.object(review),
+          ],
+        });
+        setIsLoading(true);
+        console.log("reorder, signing transaction block...");
         return signTransactionBlock({
             transactionBlock: tx,
-        })
-        .then((signedTx: any) => {
+          })
+          .then((signedTx: any) => {
             return executeSignedTransactionBlock({
                 signedTx,
                 requestType: "WaitForLocalExecution",
@@ -50,32 +40,28 @@ export const useReviewVoting = () => {
                 setIsLoading(false);
                 console.log(resp);
                 if (resp.effects?.status.status === "success") {
-                    console.log("Total score updated");
-                    toast.success("Total score updated");
+                    console.log("Reorder success");
+                    toast.success("Reorder success");
                     return 
                 } else {
-                    console.log("Total score update failed");
-                    toast.error("Total score update failed.");
+                    console.log("Reorder failed");
+                    toast.error("Reorder failed.");
                     return
                   }
                 })
                 .catch((err) => {
                     setIsLoading(false);
-                    console.log("Total score update failed");
+                    console.log("Reorder failed");
                     console.log(err);
-                    toast.error("Something went wrong, Total score update failed.");
+                    toast.error("Something went wrong, Reorder failed.");
                 });
             })
             .catch(() => {
                 setIsLoading(false);
                 console.log("Error while signing tx");
             });
-        }
-    
-};
-
-    
-    
+    }
+    return { handleServiceReviewReordering }
 
 
-
+}
