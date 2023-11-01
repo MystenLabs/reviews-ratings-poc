@@ -12,6 +12,7 @@ export const useReviewSubmit = () => {
     const submitReview = async(rev: Review) => {
         // Start to hash
         const reviewJson = JSON.stringify(rev);
+        console.log("reviewJson = " + reviewJson);
         const firstHash = crypto.createHash("sha256");
         firstHash.update(reviewJson);
         const firstReviewHash = firstHash.digest();
