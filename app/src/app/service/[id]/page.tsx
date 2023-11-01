@@ -4,9 +4,13 @@ import { useParams } from "next/navigation";
 import { useGetReviews } from "../../hooks/useGetReviews";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { useWalletKit } from "@mysten/wallet-kit";
-import { useState } from "react";
-import { Review as ReviewType } from "../../types/Review";
-import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
+interface ReviewType {
+  id: string;
+  priority: string;
+}
 
 interface ReviewItem {
   type: string;
@@ -18,20 +22,28 @@ interface ReviewItem {
 
 export default function Service() {
   const { signAndExecuteTransactionBlock } = useWalletKit();
+  const router = useRouter();
   const { id } = useParams();
-  const { dataReviews, dataName, isLoading, currentAccount } = useGetReviews(id);
+  const { dataReviews, dataName, isLoading, currentAccount } =
+    useGetReviews(id);
 
   const [reviews, setReviews] = useState([] as ReviewType[]);
 
   const SUI_CLOCK =
     "0x0000000000000000000000000000000000000000000000000000000000000006";
 
+  const onDisplayReview = (review: ReviewType) => {
+    router.push(`/review/${review.id}`);
+  };
+
   useEffect(() => {
     async function getReviews() {
       if (isLoading) {
         return;
       }
-      console.dir(`reviews: ${JSON.stringify(dataReviews)} size=${dataReviews.length}`);
+      console.dir(
+        `reviews: ${JSON.stringify(dataReviews)} size=${dataReviews.length}`
+      );
 
       const reviewsPromises = dataReviews.map(async (item: ReviewItem) => {
         console.log(`review: ${JSON.stringify(item)}`);
@@ -87,6 +99,7 @@ export default function Service() {
               <tr>
                 <th>Review ID</th>
                 <th>Priority</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -94,6 +107,16 @@ export default function Service() {
                 <tr key={item.id}>
                   <td>{item.id}</td>
                   <td>{item.priority}</td>
+                  <td>
+                    {
+                      <button
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                        onClick={() => onDisplayReview(item)}
+                      >
+                        More info
+                      </button>
+                    }
+                  </td>
                 </tr>
               ))}
             </tbody>
