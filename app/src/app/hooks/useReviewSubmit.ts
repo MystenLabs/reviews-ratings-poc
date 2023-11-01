@@ -9,7 +9,7 @@ import crypto from "crypto";
 
 export const useReviewSubmit = () => {
 
-    const submitReview = async(rev: Review) => {
+    const handleSubmitReview = async(rev: Review) => {
         // Start to hash
         const reviewJson = JSON.stringify(rev);
         console.log("reviewJson = " + reviewJson);
@@ -45,6 +45,6 @@ export const useReviewSubmit = () => {
             })
     }
 
-    return { submitReview };
+    return { handleSubmitReview };
 
 }
