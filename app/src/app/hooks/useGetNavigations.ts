@@ -26,10 +26,10 @@ export const useGetNavigations = () => {
       user.role.slice(0, 1).toUpperCase() + user.role.slice(1);
     if (user.role === USER_ROLES.ROLE_2) {
       userNavigations = [
-        // {
-        //   title: "Home",
-        //   href: `/${USER_ROLES.ROLE_2}`,
-        // },
+        {
+          title: "Home",
+          href: `/${USER_ROLES.ROLE_2}`,
+        },
         // {
         //   title: "Account",
         //   href: "/account",
@@ -41,10 +41,10 @@ export const useGetNavigations = () => {
       ];
     } else if (user.role === USER_ROLES.ROLE_1) {
       userNavigations = [
-        // {
-        //   title: "Home",
-        //   href: `/${USER_ROLES.ROLE_1}`,
-        // },
+        {
+          title: "Home",
+          href: `/${USER_ROLES.ROLE_1}`,
+        },
         // {
         //   title: "Account",
         //   href: "/account",

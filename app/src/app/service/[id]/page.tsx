@@ -84,6 +84,7 @@ export default function Service() {
       },
     });
     console.dir(resp, { depth: null });
+    window.location.reload();
   };
 
   return (
