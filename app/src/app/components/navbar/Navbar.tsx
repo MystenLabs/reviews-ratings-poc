@@ -14,19 +14,19 @@ export const Navbar = () => {
   const { user, handleLogout } = useAuthentication();
 
   return (
-    <div className="grid grid-cols-12 w-full items-center p-[8px] h-[80px] border-b-gray-400 border-b-[1px] sticky top-0">
+    <div
+      className="grid grid-cols-12 w-full items-center p-[8px] h-[80px] border-b-gray-400 border-b-[1px] sticky top-0"
+      style={{
+        background: "white",
+      }}
+    >
       <div className="col-span-3 flex space-x-3 items-center">
-        <div className="text-xl font-bold">PoC Template NextJS</div>
-        {!!user.id && (
-          <div className="text-gray-200">
-            For {user.role.slice(0, 1).toUpperCase().concat(user.role.slice(1))}
-            s
-          </div>
-        )}
-        {!user.id && <div className="text-gray-200">For Anonymous</div>}
+        <div className="text-xl text-red-600 text-2xl font-bold">
+          Restaurant Reviews
+        </div>
       </div>
 
-      <div className="col-span-6 flex justify-center items-center gap-[14px]">
+      <div className="col-span-6 flex space-x-3 justify-center">
         {navigations.map(({ title, href }) => {
           const pathParts = pathname.split("/").filter((part) => !!part);
           const pathSuffix = pathParts[pathParts.length - 1];
@@ -49,15 +49,15 @@ export const Navbar = () => {
           return (
             <Link
               key={href}
-              className={`text-lg font-weight-500 ${
-                isActive ? "underline" : ""
-              }`}
+              className={`text-lg bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded`}
               href={href}
             >
               {title}
             </Link>
           );
         })}
+      </div>
+      <div className="col-span-3 flex justify-end gap-[14px]">
         {!!user.id && (
           <button
             onClick={handleLogout}
@@ -66,8 +66,6 @@ export const Navbar = () => {
             Logout
           </button>
         )}
-      </div>
-      <div className="col-span-3 flex justify-end">
         <ConnectButton />
       </div>
     </div>
