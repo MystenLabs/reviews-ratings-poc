@@ -47,7 +47,7 @@ const ServiceOwnerPage = () => {
   return (
     <div>
       <h1>Services</h1>
-      <Services onAdd={onServiceAdded} />
+      <Services />
       <div className="form-container">
         <form
           className="service-form"
