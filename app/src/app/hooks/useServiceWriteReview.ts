@@ -68,20 +68,20 @@ export const useServiceWriteReview = () => {
         }
 
     const HandleWriteReviewWithoutPoE = async(       
-        serviceObj: string, 
+        serviceObj: string | undefined, 
         serviceOwnerAddress: string, 
-        reviewHash: Uint8Array,
-        review: string,
+        reviewHash: String[],
+        reviewLength: number,
         setIsLoading: any
     ) => {
         const tx = new TransactionBlock();
         tx.moveCall({
             target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::review::write_new_review_without_poe`,
             arguments: [
-                tx.object(serviceObj),
+                tx.object(serviceObj ?? ""),
                 tx.pure(serviceOwnerAddress),
                 tx.pure(reviewHash),
-                tx.pure(reviewHash.length),
+                tx.pure(reviewLength),
                 tx.object(SUI_CLOCK_OBJECT_ID),
             ],
         });
