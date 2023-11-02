@@ -25,7 +25,7 @@ export const useGetServices = (dashboardId: string) => {
     setIsLoading(true);
 
     console.log(`fetching obj_id=${dashboardId}`);
-
+    console.log("calling Get Services");
     suiClient
       .getObject({
         id: dashboardId,
