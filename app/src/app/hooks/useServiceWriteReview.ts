@@ -12,7 +12,7 @@ export const useServiceWriteReview = () => {
         setIsLoading: any) => {
             const tx = new TransactionBlock();
             tx.moveCall({
-                target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::review::write_new_review`,
+                target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::service::write_new_review`,
                 arguments: [
                     tx.object(adminCap),
                     tx.object(serviceObj),
@@ -36,13 +36,13 @@ export const useServiceWriteReview = () => {
     ) => {
         const tx = new TransactionBlock();
         tx.moveCall({
-            target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::review::write_new_review_without_poe`,
+            target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::service::write_new_review_without_poe`,
             arguments: [
                 tx.object(serviceObj ?? ""),
                 tx.pure(serviceOwnerAddress),
                 tx.pure(reviewHash),
                 tx.pure(reviewLength),
-                tx.object(SUI_CLOCK_OBJECT_ID),
+                tx.pure("0x0000000000000000000000000000000000000000000000000000000000000006"),
             ],
         });
         setIsLoading(true);
