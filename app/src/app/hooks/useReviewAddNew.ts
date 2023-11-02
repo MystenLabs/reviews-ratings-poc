@@ -1,16 +1,9 @@
-import { toast } from "react-hot-toast";
-import { Result } from "../types/Result";
 import { useState } from "react";
-import { useWalletKit } from "@mysten/wallet-kit"
-import { useSui } from "./useSui";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
-import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui.js/utils";
 
 const exmapleHash = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08";
 // has to be async
 export const useReviewAddNew = () => {
-    const { executeSignedTransactionBlock } = useSui();
-    const { signTransactionBlock } = useWalletKit();
     const [isLoading, setIsLoading] = useState(false);
     const tx = new TransactionBlock();
     
