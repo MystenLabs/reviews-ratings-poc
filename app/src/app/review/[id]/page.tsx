@@ -6,7 +6,8 @@ import { useEffect, useState } from "react";
 
 export default function Service() {
   const { id } = useParams();
-  const { dataReview, isLoading, isError, currentAccount } = useGetReview(id);
+  const { dataReview, dataReviewBody, isLoading, isError, currentAccount } =
+    useGetReview(id);
 
   if (!currentAccount) {
     return <h3>Wallet not connected</h3>;
@@ -31,6 +32,7 @@ export default function Service() {
         <div>Has POE: {`${dataReview?.has_poe}`}</div>
         <div>Total Score: {`${dataReview?.ts}`}</div>
         <div>Is locked: {`${dataReview?.is_locked}`}</div>
+        <div>Content: {`${dataReviewBody}`}</div>
       </div>
     );
   };
