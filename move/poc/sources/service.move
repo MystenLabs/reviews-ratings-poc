@@ -74,7 +74,7 @@ module poc::service {
         cap: &AdminCap,
         service: &mut Service, 
         owner: address,
-        hash_of_review: vector<u8>, 
+        hash_of_review: String,
         len_of_review: u64,
         clock: &Clock,
         ctx: &mut TxContext
@@ -90,7 +90,7 @@ module poc::service {
     public fun write_new_review_without_poe(
         service: &mut Service, 
         owner: address,
-        hash_of_review: vector<u8>, 
+        hash_of_review: String,
         len_of_review: u64,
         clock: &Clock,
         ctx: &mut TxContext
