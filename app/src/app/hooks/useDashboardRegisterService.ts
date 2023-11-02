@@ -1,7 +1,7 @@
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { useSignAndExecuteTransaction } from "./useSignAndExecuteTransaction";
 // has to be async
-export const useDashboardRegisterService = (dashboard_obj: any ,service_id: string ) => {
+export const useDashboardRegisterService = () => {
   const { handleSignAndExecuteTransaction } = useSignAndExecuteTransaction();
 
   const handleRegisterService = async(
