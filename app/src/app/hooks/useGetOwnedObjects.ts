@@ -25,7 +25,7 @@ export const useGetOwnedObjects = () => {
     suiClient
       .getOwnedObjects({
         owner: currentAccount?.address!,
-        limit: 5,
+        limit: 100,
         options: {
           showContent: true,
         },
