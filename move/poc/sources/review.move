@@ -24,7 +24,7 @@ module poc::review {
         owner: address,
         service_id: ID,
 
-        hash: vector<u8>, 
+        hash: String,
         len: u64, // is
         votes: u64, // es
         time_issued: u64, // dr
@@ -43,7 +43,7 @@ module poc::review {
     public fun new_review(
         owner: address, 
         service_id: ID, 
-        hash: vector<u8>, 
+        hash: String,
         len: u64, 
         has_poe: bool, 
         clock: &Clock, 
