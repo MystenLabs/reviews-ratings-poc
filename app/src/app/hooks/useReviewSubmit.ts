@@ -1,15 +1,11 @@
-import { useWalletKit } from "@mysten/wallet-kit"
 import { toast } from "react-hot-toast";
 import { Result } from "../types/Result";
-import { useState } from "react";
-import { useSui } from "./useSui";
-import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { Review } from "../types/Review";
 import crypto from "crypto";
 
 export const useReviewSubmit = () => {
 
-    const submitReview = async(rev: Review) => {
+    const handleSubmitReview = async(rev: Review) => {
         // Start to hash
         const reviewJson = JSON.stringify(rev);
         console.log("reviewJson = " + reviewJson);
@@ -45,6 +41,6 @@ export const useReviewSubmit = () => {
             })
     }
 
-    return { submitReview };
+    return { handleSubmitReview };
 
 }

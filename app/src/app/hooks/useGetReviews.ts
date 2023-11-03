@@ -27,7 +27,7 @@ export const useGetReviews = (serviceId: string) => {
     setIsLoading(true);
 
     console.log(`fetching obj_id=${serviceId}`);
-
+    console.log("calling Get reviews");
     suiClient
       .getObject({
         id: serviceId,

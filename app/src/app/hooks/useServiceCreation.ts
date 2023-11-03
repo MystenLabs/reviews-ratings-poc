@@ -3,63 +3,48 @@ import { toast } from "react-hot-toast";
 import { Result } from "../types/Result";
 import { useState } from "react";
 import { useSui } from "./useSui";
-import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { TransactionArgument, TransactionBlock, Transactions } from "@mysten/sui.js/transactions";
+import { useSignAndExecuteTransaction } from "./useSignAndExecuteTransaction";
 
 export const useServiceCreation = () => {
-    const { executeSignedTransactionBlock } = useSui();
-    const { signTransactionBlock } = useWalletKit();
-
-    const handleServiceCreation = async(
+    const { handleSignAndExecuteTransaction } = useSignAndExecuteTransaction();
+    const handleServiceCreationAndRegister= async(
         name: String,
-        setIsLoading: any): Promise<string> => {
+        dashboardId: string,
+        setIsLoading: any) => {
         const tx = new TransactionBlock();
-        tx.moveCall({
-            target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::service::create_service`,
+        const serviceCreation= tx.moveCall({
+            target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::create_service`,
             arguments: [
                 tx.pure(name),
             ],
-            });
+        });
+
+        tx.moveCall({
+            target: `${process.env.NEXT_PUBLIC_PACKAGE}::dashboard::register_service`,
+            arguments: [
+                tx.object(dashboardId),
+                serviceCreation,
+            ],
+        });
             setIsLoading(true);
             console.log("Create Service, signing transaction block...");
-            return signTransactionBlock({
-                transactionBlock: tx,
-              })
-              .then((signedTx: any) => {
-                return executeSignedTransactionBlock({
-                    signedTx,
-                    requestType: "WaitForLocalExecution",
-                    options: {
-                      showEffects: true,
-                      showEvents: true,
-                    },
-                  })
-                  .then((resp) => {
-                    setIsLoading(false);
-                    console.log(resp);
-                    if (resp.effects?.status.status === "success") {
-                        console.log("Service created");
-                        toast.success("Service created");
-                        return ""
-                    } else {
-                        console.log("Create Service failed");
-                        toast.error("Create Service failed.");
-                        return ""
-                      }
-                    })
-                    .catch((err) => {
-                        setIsLoading(false);
-                        console.log("Create Service failed");
-                        console.log(err);
-                        toast.error("Something went wrong, Create Service failed.");
-                        return ""
-                    });
-                })
-                .catch(() => {
-                    setIsLoading(false);
-                    console.log("Error while signing tx");
-                    return ""
-                });
-            }
-    return { handleServiceCreation }
+            return handleSignAndExecuteTransaction(tx, "Create Service", setIsLoading);
+        }
+    const handleServiceCreationTransactionBlock = async(
+        name: String,
+        setIsLoading: any): Promise<TransactionBlock> => {
+        const tx = new TransactionBlock();
+        tx.moveCall({
+            target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::create_service`,
+            arguments: [
+                tx.pure(name),
+            ],
+        });
+        setIsLoading(true);
+        console.log("Create Service, signing transaction block...");
+        return tx;
+    }
+    return { handleServiceCreationAndRegister, handleServiceCreationTransactionBlock }
 
 }
