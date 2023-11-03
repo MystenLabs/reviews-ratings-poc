@@ -25,9 +25,9 @@ export default function Service() {
 
   const [reviews, setReviews] = useState([] as ReviewType[]);
 
-  const onDisplayReview = (review: ReviewType) => {
-    router.push(`/review/${review.id}`);
-  };
+    const onDisplayReview = (review: ReviewType) => {
+        router.push(`/review/${review.id}`);
+    };
 
   useEffect(() => {
     async function getReviews() {

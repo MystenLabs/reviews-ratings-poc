@@ -1,36 +1,32 @@
-import { revalidatePath } from "next/cache";
-import { NextRequest, NextResponse } from "next/server";
-import { kv } from "@vercel/kv";
-import { Result } from "@/app/types/Result";
-import { Review } from "@/app/types/Review";
+import {revalidatePath} from "next/cache";
+import {NextRequest, NextResponse} from "next/server";
+import {kv} from "@vercel/kv";
 
-export const fetchCache = "force-no-store";
-export const revalidate = 1;
+interface ReviewRequestBody {
+    key: string,
+    value: string
+}
 
-export const GET = async (request: NextRequest) => {
+export const POST = async (request: NextRequest) => {
     const path = request.nextUrl.searchParams.get("path") || "/";
     revalidatePath(path);
 
-    console.log("path", request.nextUrl.pathname);
-    const id = request.nextUrl.pathname.split('/').pop();
-    console.log("id", id);
-    if (!id) {
-        return new NextResponse("Not found", {status: 404});
-    }
     try {
-        const reviewJson = await kv.get(id.toString());
-        console.log("reviewJson", JSON.stringify(reviewJson));
-        if (!reviewJson) {
-            return new NextResponse("Not found", {status: 404});
-        }
+        const {key, value}: ReviewRequestBody = await request.json();
+        await kv.set(key, value);
         return NextResponse.json(
-            reviewJson,
-            { status: 200 }
+            {
+                success: "Review added",
+            },
+            {status: 200}
         );
-    }catch (error) {
+    } catch (error) {
         console.error(error);
-        return new NextResponse("Not found", {status: 404});
+        return NextResponse.json(
+            {
+                error: "Failed to add review",
+            },
+            {status: 400}
+        );
     }
-
-
 };
