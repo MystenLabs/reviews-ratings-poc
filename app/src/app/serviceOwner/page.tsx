@@ -5,43 +5,70 @@ import { Services } from "../components/Services";
 import { useWalletKit } from "@mysten/wallet-kit";
 import { SuiMoveObject } from "@mysten/sui.js";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { useServiceCreation } from "../hooks/useServiceCreation";
+import { useDashboardRegisterService } from "../hooks/useDashboardRegisterService";
+import { useSignAndExecuteTransaction } from "../hooks/useSignAndExecuteTransaction";
 
 const ServiceOwnerPage = () => {
-  const { signAndExecuteTransactionBlock } = useWalletKit();
+  
+  const { handleServiceCreationAndRegister } = useServiceCreation();
+  const { handleRegisterService } = useDashboardRegisterService();
   const [serviceName, setServiceName] = useState("");
   const handleServiceNameChange = (event: ChangeEvent<HTMLInputElement>) => {
     setServiceName(event.target.value);
   };
+  const { handleSignAndExecuteTransaction } = useSignAndExecuteTransaction();
+  const [isLoading, setIsLoading] = useState(false);
+  const dashbardObj = process.env.NEXT_PUBLIC_DASHBOARD_ID as string;
 
   const onServiceAdded = useCallback(() => {}, []);
 
   const create_service = async (): Promise<void> => {
     const tx = new TransactionBlock();
+    console.log(`serviceName: ${serviceName}`);
+    // const service_id = tx.moveCall({
+    //   target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::create_service`,
+    //   arguments: [
+    //     tx.pure(serviceName),
+    //   ],
+    // });
+    // console.log(`service_id: ${service_id.toString()}}`);
+    // // const resp = await handleRegisterService(dashbardObj, service_id, setIsLoading);
 
-    let [service_id] = tx.moveCall({
-      target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::create_service`,
-      arguments: [tx.pure(serviceName)],
-    });
+    // tx.moveCall({
+    //   target: `${process.env.NEXT_PUBLIC_PACKAGE}::dashboard::register_service`,
+    //   arguments: [
+    //     tx.object(`${process.env.NEXT_PUBLIC_DASHBOARD_ID}`),
+    //     service_id,
+    //   ],
+    // });
 
-    tx.moveCall({
-      target: `${process.env.NEXT_PUBLIC_PACKAGE}::dashboard::register_service`,
-      arguments: [
-        tx.object(`${process.env.NEXT_PUBLIC_DASHBOARD_ID}`),
-        service_id,
-      ],
-    });
+    // handleSignAndExecuteTransaction(tx, "create_service", setIsLoading);
+    const resp = await handleServiceCreationAndRegister(
+      serviceName, 
+      dashbardObj,
+      setIsLoading
+      ).then((resp) => {
+        console.log(`resp: ${JSON.stringify(resp)}`);
+        setTimeout(() => {
+          window.location.reload(),
+          2000
+        });
+        onServiceAdded();
+      });
 
-    tx.setGasBudget(1000000000);
-    const resp = await signAndExecuteTransactionBlock({
-      transactionBlock: tx,
-      options: {
-        showEffects: true,
-        showObjectChanges: true,
-      },
-    });
-    console.dir(resp, { depth: null });
+    // tx.setGasBudget(1000000000);
+    // const resp = await signAndExecuteTransactionBlock({
+    //   transactionBlock: tx,
+    //   options: {
+    //     showEffects: true,
+    //     showObjectChanges: true,
+    //   },
+    // });
 
-    onServiceAdded();
+    // console.dir(resp, { depth: null });
+    
+    // onServiceAdded();
   };
 
   return (

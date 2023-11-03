@@ -6,7 +6,7 @@ export const useDashboardRegisterService = () => {
 
   const handleRegisterService = async(
     dashboard_obj: any,
-    service_id: string,
+    service_id: any,
     setIsLoading: any
   ) => {
     const tx = new TransactionBlock();
