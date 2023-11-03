@@ -15,7 +15,7 @@ export const useServicePoEGeneration = () => {
     // ) => {
     //     const tx = new TransactionBlock();
     //     tx.moveCall({
-    //       target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::service::generate_proof_of_experience`,
+    //       target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::generate_proof_of_experience`,
     //       arguments: [
 
     //         // need to add arguments here

@@ -9,7 +9,7 @@ export const useReviewUpdateTotalScore = () => {
       ) => {
         const tx = new TransactionBlock();
         tx.moveCall({
-          target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::review::update_total_score`,
+          target: `${process.env.NEXT_PUBLIC_PACKAGE}::review::update_total_score`,
           arguments: [
             tx.object(reviewObj),
           ],

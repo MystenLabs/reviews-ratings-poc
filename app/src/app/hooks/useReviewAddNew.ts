@@ -16,7 +16,7 @@ export const useReviewAddNew = () => {
     // ) : Promise<[string, number]> => {
     //     try{
     //         tx.moveCall({
-    //             target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::review::new_review`,
+    //             target: `${process.env.NEXT_PUBLIC_PACKAGE}::review::new_review`,
     //             arguments: [
     //                 tx.object(owner_address),
     //                 tx.object(service_id),

@@ -9,7 +9,7 @@ export const useServiceReviewDistribution = () => {
         setIsLoading: any) => {
         const tx = new TransactionBlock();
         tx.moveCall({
-            target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::review::distribute_reward`,
+            target: `${process.env.NEXT_PUBLIC_PACKAGE}::review::distribute_reward`,
             arguments: [
                 tx.object(adminCap),
                 tx.object(reviewObj),

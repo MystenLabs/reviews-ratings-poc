@@ -11,7 +11,7 @@ export const useDashboardRegisterService = () => {
   ) => {
     const tx = new TransactionBlock();
     tx.moveCall({
-      target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::dashboard::register_service`,
+      target: `${process.env.NEXT_PUBLIC_PACKAGE}::dashboard::register_service`,
       arguments: [
         tx.object(dashboard_obj),
         tx.pure(service_id),

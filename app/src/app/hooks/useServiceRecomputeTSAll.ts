@@ -11,7 +11,7 @@ export const useServiceRecomputeTSAll = () => {
         ) => {
         const tx = new TransactionBlock();
         tx.moveCall({
-            target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::service::recompute_ts_for_all`,
+            target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::recompute_ts_for_all`,
             arguments: [
                 tx.object(adminCap),
                 tx.object(service),

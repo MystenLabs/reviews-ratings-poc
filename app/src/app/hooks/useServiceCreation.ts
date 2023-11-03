@@ -12,7 +12,7 @@ export const useServiceCreation = () => {
         setIsLoading: any): Promise<any> => {
         const tx = new TransactionBlock();
         const serviceCreationTxResult = tx.moveCall({
-            target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::service::create_service`,
+            target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::create_service`,
             arguments: [
                 tx.pure(name),
             ],
@@ -26,7 +26,7 @@ export const useServiceCreation = () => {
         setIsLoading: any): Promise<TransactionBlock> => {
         const tx = new TransactionBlock();
         tx.moveCall({
-            target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::service::create_service`,
+            target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::create_service`,
             arguments: [
                 tx.pure(name),
             ],

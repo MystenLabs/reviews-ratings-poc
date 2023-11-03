@@ -39,8 +39,11 @@ export const useSignAndExecuteTransaction = () => {
                 console.log(`${operation} error : `,err);
                 toast.error(`Something went wrong, ${operation} operation failed.`);
             });
-        });
-    
+        }).catch((err) => {
+            setIsLoading(false);
+            console.log(`signing goes wrong ${operation} error : `,err);
+            toast.error(`signing goes wrong, ${operation} operation failed.`);
+        }); // <-- added missing semicolon here
     }
     return { handleSignAndExecuteTransaction }
 }

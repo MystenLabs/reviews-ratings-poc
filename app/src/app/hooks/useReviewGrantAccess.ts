@@ -14,7 +14,7 @@ export const useReviewGrantAccess = () => {
       const sendTipAmount = await tx.splitCoins(tx.gas, [tx.pure(payment)]);
       // start to set up transaction block
       tx.moveCall({
-        target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::review::grant_access_to`,
+        target: `${process.env.NEXT_PUBLIC_PACKAGE}::review::grant_access_to`,
         arguments: [
           tx.object(review),
           sendTipAmount,
