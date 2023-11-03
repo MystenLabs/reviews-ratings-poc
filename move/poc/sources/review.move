@@ -102,7 +102,7 @@ module poc::review {
     public fun lock(rev: &mut Review, ctx: &mut TxContext) {
         // only the owner of a Review may lock
         assert!(rev.owner == tx_context::sender(ctx), EInvalidPermission);
-        assert!(rev.is_locked == true, EAlreadyLocked);
+        assert!(rev.is_locked == false, EAlreadyLocked);
         rev.is_locked = true;
     }
 
