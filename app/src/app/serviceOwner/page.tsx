@@ -10,40 +10,19 @@ import { useDashboardRegisterService } from "../hooks/useDashboardRegisterServic
 import { useSignAndExecuteTransaction } from "../hooks/useSignAndExecuteTransaction";
 
 const ServiceOwnerPage = () => {
-  
   const { handleServiceCreationAndRegister } = useServiceCreation();
-  const { handleRegisterService } = useDashboardRegisterService();
   const [serviceName, setServiceName] = useState("");
   const handleServiceNameChange = (event: ChangeEvent<HTMLInputElement>) => {
     setServiceName(event.target.value);
   };
-  const { handleSignAndExecuteTransaction } = useSignAndExecuteTransaction();
   const [isLoading, setIsLoading] = useState(false);
   const dashbardObj = process.env.NEXT_PUBLIC_DASHBOARD_ID as string;
 
   const onServiceAdded = useCallback(() => {}, []);
 
   const create_service = async (): Promise<void> => {
-    const tx = new TransactionBlock();
     console.log(`serviceName: ${serviceName}`);
-    // const service_id = tx.moveCall({
-    //   target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::create_service`,
-    //   arguments: [
-    //     tx.pure(serviceName),
-    //   ],
-    // });
-    // console.log(`service_id: ${service_id.toString()}}`);
-    // // const resp = await handleRegisterService(dashbardObj, service_id, setIsLoading);
 
-    // tx.moveCall({
-    //   target: `${process.env.NEXT_PUBLIC_PACKAGE}::dashboard::register_service`,
-    //   arguments: [
-    //     tx.object(`${process.env.NEXT_PUBLIC_DASHBOARD_ID}`),
-    //     service_id,
-    //   ],
-    // });
-
-    // handleSignAndExecuteTransaction(tx, "create_service", setIsLoading);
     const resp = await handleServiceCreationAndRegister(
       serviceName, 
       dashbardObj,
@@ -56,19 +35,6 @@ const ServiceOwnerPage = () => {
         });
         onServiceAdded();
       });
-
-    // tx.setGasBudget(1000000000);
-    // const resp = await signAndExecuteTransactionBlock({
-    //   transactionBlock: tx,
-    //   options: {
-    //     showEffects: true,
-    //     showObjectChanges: true,
-    //   },
-    // });
-
-    // console.dir(resp, { depth: null });
-    
-    // onServiceAdded();
   };
 
   return (
