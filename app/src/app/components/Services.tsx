@@ -13,7 +13,6 @@ export const Services = () => {
   const { serviceList, isLoading, currentAccount } = useGetServices(
     process.env.NEXT_PUBLIC_DASHBOARD_ID as string
   );
-  const [initialServicelength, setInitialServiceLength] = useState(0);
 
   const [services, setServices] = useState([] as ServiceType[]);
 
@@ -21,29 +20,28 @@ export const Services = () => {
     router.push(`/service/${service.id}`);
   };
 
-  const getServies = async () => {
-    if (isLoading) {
-      return;
-    }
-    console.log(`serviceList: ${JSON.stringify(serviceList)}`);
-
-    const servicesPromises = serviceList.map(async (serviceId: string) => {
-      const obj = await suiClient.getObject({
-        id: serviceId,
-        options: { showContent: true },
-      });
-      const serviceName = (obj.data?.content as SuiMoveObject).fields.name;
-      console.log(`obj: ${JSON.stringify(obj.data)}`);
-      const service = { id: serviceId, name: serviceName };
-      return service;
-    });
-    setServices(await Promise.all(servicesPromises));
-    setInitialServiceLength(services.length);
-  }
-
   useEffect(() => {
+    async function getServies() {
+      if (isLoading) {
+        return;
+      }
+      console.log(`serviceList: ${JSON.stringify(serviceList)}`);
+
+      const servicesPromises = serviceList.map(async (serviceId: string) => {
+        const obj = await suiClient.getObject({
+          id: serviceId,
+          options: { showContent: true },
+        });
+        const serviceName = (obj.data?.content as SuiMoveObject).fields.name;
+        console.log(`obj: ${JSON.stringify(obj.data)}`);
+        const service = { id: serviceId, name: serviceName };
+        return service;
+      });
+      setServices(await Promise.all(servicesPromises));
+    }
+
     getServies();
-  }, [currentAccount, isLoading, serviceList, initialServicelength]);
+  }, [currentAccount, isLoading, serviceList]);
 
   return (
     <div className="container">
