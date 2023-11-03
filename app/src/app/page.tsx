@@ -9,18 +9,15 @@ export default function Home() {
 
   return (
     <div
-      className="flex flex-col justify-center items-center w-screen"
-      style={{
-        height: "calc(100vh)",
-      }}
+      className="flex flex-col justify-center items-center w-screen h-screen"
     >
       <div
         className="relative bg-center bg-cover rounded-lg"
         style={{
-          height: "calc(100%)",
+          height: "calc(100% - 80px)",
           width: "calc(100% - 30px)",
           backgroundImage: `url(${foodBackground.src})`,
-          backgroundPosition: "-81.048px 50px",
+          backgroundPosition: "-80px 60px",
         }}
       >
         <div
@@ -29,7 +26,7 @@ export default function Home() {
             width: "500px",
             position: "absolute",
             left: "50%",
-            bottom: "60%",
+            bottom: "50%",
             transform: "translateX(-50%)",
           }}
         >

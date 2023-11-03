@@ -45,35 +45,35 @@ const ServiceOwnerPage = () => {
   };
 
   return (
-    <div>
+    <div className="flex flex-col mx-32 my-10">
       <h1>Services</h1>
       <Services />
-      <div className="form-container">
-        <form
-          className="service-form"
-          onSubmit={async (event) => {
-            event.preventDefault();
-            await create_service();
-          }}
-        >
-          <div className="form-group">
-            <label htmlFor="serviceName" className="navbar-link">
-              Service name
-            </label>
-            <input
-              type="text"
-              id="serviceName"
-              className="navbar-input"
-              placeholder="Service name"
-              value={serviceName}
-              onChange={handleServiceNameChange}
-            />
-            <button type="submit" className="navbar-link">
-              Add a new service
-            </button>
-          </div>
-        </form>
-      </div>
+      <form
+        onSubmit={async (event) => {
+          event.preventDefault();
+          await create_service();
+        }}
+      >
+        <div className="flex flex-row space-x-6">
+          <label htmlFor="serviceName" className="self-center w-56">
+            Service name
+          </label>
+          <input
+            type="text"
+            id="serviceName"
+            className="navbar-input"
+            placeholder="Service name"
+            value={serviceName}
+            onChange={handleServiceNameChange}
+          />
+          <button
+            type="submit"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 w-80 rounded"
+          >
+            Add a new service
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

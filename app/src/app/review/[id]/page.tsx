@@ -21,7 +21,7 @@ export default function Service() {
       return <h3>Error</h3>;
     }
     return (
-      <div>
+      <div className="m-5 space-y-3">
         <div>Id: {`${id}`}</div>
         <div>Owner: {`${dataReview?.owner}`}</div>
         <div>Service Id: {`${dataReview?.service_id}`}</div>
@@ -32,12 +32,15 @@ export default function Service() {
         <div>Has POE: {`${dataReview?.has_poe}`}</div>
         <div>Total Score: {`${dataReview?.ts}`}</div>
         <div>Is locked: {`${dataReview?.is_locked}`}</div>
-        <div>Content: {`${dataReviewBody}`}</div>
+        <div className="flex flex-row space-x-6 w-screen">
+          <h2 className="self-center">Content</h2>
+          <p className="box-border w-150px p-4 border-4 hover:box-content">{`${dataReviewBody}`}</p>
+        </div>
       </div>
     );
   };
   return (
-    <div>
+    <div className="flex flex-col mx-32 my-10">
       <h1>Review</h1>
       {renderContent()}
     </div>

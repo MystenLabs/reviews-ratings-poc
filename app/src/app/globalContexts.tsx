@@ -13,8 +13,8 @@ export default function GlobalContexts({
     <WalletKitProvider>
       <AuthenticationProvider>
         <Navbar />
-        <main className="flex flex-col justify-center items-center w-screen" style={{
-          height: 'calc(100vh + 120px)',
+        <main className="flex" style={{
+          height: 'calc(100vh - 60px)',
         }}>{children}</main>
       </AuthenticationProvider>
     </WalletKitProvider>
