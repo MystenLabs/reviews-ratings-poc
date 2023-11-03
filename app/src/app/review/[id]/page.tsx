@@ -1,10 +1,20 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useGetReview } from "../../hooks/useGetReview";
-import { useReviewLocking } from "../../hooks/useReviewLocking";
-import { useReviewVoting } from "../../hooks/useReviewVoting";
+import { useGetReview } from "@/app/hooks/useGetReview";
+import { useReviewLocking } from "@/app/hooks/useReviewLocking";
+import { useReviewVoting } from "@/app/hooks/useReviewVoting";
+import { useReviewGrantAccess } from "@/app/hooks/useReviewGrantAccess";
+import { useGetOwnedGrantObjects } from "@/app/hooks/useGetOwnedGrantObjects";
 import React, { useState } from "react";
+
+interface GrantType {
+  id: {
+    id: string;
+  };
+  owner: string;
+  review_id: string;
+}
 
 export default function Service() {
   const { id } = useParams();
@@ -12,7 +22,12 @@ export default function Service() {
     useGetReview(id);
   const { handleReviewLocking } = useReviewLocking();
   const { handleUpvote, handleDownvote } = useReviewVoting();
+  const { handleReviewAccessGrant } = useReviewGrantAccess();
+
+  const { dataGrants } = useGetOwnedGrantObjects();
+
   const [isReviewLockLoading, setIsReviewLockLoading] = useState(false);
+  const [isGrantAccessLoading, setIsGrantAccessLoading] = useState(false);
 
   if (!currentAccount) {
     return <h3>Wallet not connected</h3>;
@@ -24,7 +39,16 @@ export default function Service() {
     window.location.reload();
   };
 
-  const onUnlockReview = async () => {};
+  const onUnlockReview = async () => {
+    const res = await handleReviewAccessGrant(
+      id,
+      1000000000,
+      currentAccount.address,
+      setIsGrantAccessLoading,
+    );
+    console.log("unlockReview: " + res);
+    window.location.reload();
+  };
 
   const onUpvote = async (serviceId: string) => {
     const res = await handleUpvote(serviceId, id);
@@ -47,8 +71,21 @@ export default function Service() {
     }
 
     let isOwner = currentAccount?.address === dataReview?.owner;
-    let showLockButton = !dataReview?.is_locked && isOwner;
-    let showUnlockButton = dataReview?.is_locked;
+    let isLocked = dataReview?.is_locked;
+    let showLockButton = !isLocked && isOwner;
+    let showUnlockButton = isLocked && !isOwner;
+    let hasGrant = false;
+    if (isLocked) {
+      // console.log("grantObjs: " + JSON.stringify(dataGrants));
+      dataGrants.map((grant: GrantType) => {
+        if (grant.owner === currentAccount?.address && grant.review_id === id) {
+          hasGrant = true;
+        }
+      });
+    }
+    let showContent = true;
+    if (!isOwner && isLocked && !hasGrant) showContent = false;
+
     return (
       <div className="m-5 space-y-3">
         <div>Id: {`${id}`}</div>
@@ -63,10 +100,10 @@ export default function Service() {
         <div>Is locked: {`${dataReview?.is_locked}`}</div>
         <div className="flex flex-row space-x-6">
           <h2 className="self-center">Content</h2>
-          {dataReview?.is_locked && (
+          {!showContent && (
             <p className="w-1/2 box-border p-4 border-4">locked</p>
           )}
-          {!dataReview?.is_locked && (
+          {showContent && (
             <p className="w-1/2 box-border p-4 border-4">{`${dataReviewBody}`}</p>
           )}
         </div>
