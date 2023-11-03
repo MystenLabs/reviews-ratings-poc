@@ -108,22 +108,18 @@ module poc::review {
 
     public fun grant_access_to(
         rev: &Review, 
-        payment: &mut Coin<SUI>, 
+        payment: Coin<SUI>,
         recepient: address, 
         ctx: &mut TxContext
     ) {
-        assert!(coin::value(payment) < rev.fee_to_unlock, ENotEnoughPayment);
+        assert!(coin::value(&payment) == rev.fee_to_unlock, ENotEnoughPayment);
         // generate an NFT that consumers can use to have access to obfuscated review
         let new_access = ReviewAccessGrant {
             id: object::new(ctx),
             owner: recepient,
             review_id: object::uid_to_inner(&rev.id)
         };
-
-        // pay rev.owner
-        let fee = coin::split(payment, rev.fee_to_unlock, ctx);
-        transfer::public_transfer(fee, rev.owner);
-
+        transfer::public_transfer(payment, rev.owner);
         transfer::transfer(new_access, recepient);
     }
 
