@@ -13,7 +13,7 @@ module poc::review {
     use sui::tx_context::{Self, TxContext};
 
     // Error codes
-    const ENotEnoughBalance: u64 = 1;
+    // const ENotEnoughBalance: u64 = 1;
     const EInvalidPermission: u64 = 2;
     const EAlreadyLocked: u64 = 3;
     const ENotEnoughPayment: u64 = 4;

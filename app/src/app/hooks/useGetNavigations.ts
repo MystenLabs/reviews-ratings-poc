@@ -45,10 +45,10 @@ export const useGetNavigations = () => {
           title: "Home",
           href: `/${USER_ROLES.ROLE_1}`,
         },
-        // {
-        //   title: "Account",
-        //   href: "/account",
-        // },
+        {
+          title: "My Services",
+          href: "/serviceOwner/ownedServices",
+        },
         // {
         //   title: `${userRoleName} Test Page`,
         //   href: `/${USER_ROLES.ROLE_1}/test`,
