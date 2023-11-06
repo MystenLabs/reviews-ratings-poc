@@ -1,61 +1,61 @@
-import { useWalletKit } from "@mysten/wallet-kit"
+import { useWalletKit } from "@mysten/wallet-kit";
 import { toast } from "react-hot-toast";
-import { Result } from "../types/Result";
-import { useState } from "react";
 import { useSui } from "./useSui";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 
 export const useServicePoEGeneration = () => {
-    const { executeSignedTransactionBlock } = useSui();
-    const { signTransactionBlock } = useWalletKit();
+  const { executeSignedTransactionBlock } = useSui();
+  const { signTransactionBlock } = useWalletKit();
 
-    // const handleServicePoEGeneration = async(
-    //     setIsLoading: any
-    //     // need to add arguments here
-    // ) => {
-    //     const tx = new TransactionBlock();
-    //     tx.moveCall({
-    //       target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::generate_proof_of_experience`,
-    //       arguments: [
+  const handleServicePoEGeneration = async (
+    adminCap: string,
+    serviceId: string,
+    recipient: string,
+  ) => {
+    const tx = new TransactionBlock();
+    tx.moveCall({
+      target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::generate_proof_of_experience`,
+      arguments: [
+        tx.object(adminCap),
+        tx.object(serviceId),
+        tx.object(recipient),
+      ],
+    });
+    tx.setGasBudget(1000000000);
+    console.log("Generating poe for " + recipient);
+    return signTransactionBlock({
+      transactionBlock: tx,
+    })
+      .then(async (signedTx: any) => {
+        try {
+          let resp = await executeSignedTransactionBlock({
+            signedTx,
+            requestType: "WaitForLocalExecution",
+            options: {
+              showEffects: true,
+              showEvents: true,
+            },
+          });
+          console.log(resp);
+          if (resp.effects?.status.status === "success") {
+            console.log("POE generated");
+            toast.success("POE generated");
+            return;
+          } else {
+            console.log("POE generated failed");
+            toast.error("POE generated failed.");
+            return;
+          }
+        } catch (err) {
+          console.log("POE generated failed");
+          console.log(err);
+          toast.error("Something went wrong");
+        }
+      })
+      .catch(() => {
+        console.log("Error while signing tx");
+      });
+  };
 
-    //         // need to add arguments here
-    //       ],
-    //     });
-    //     setIsLoading(true);
-    //     console.log("generate proof of experience, signing transaction block...");
-    //     return signTransactionBlock({
-    //         transactionBlock: tx,
-    //         })
-    //         .then((signedTx: any) => {
-    //         return executeSignedTransactionBlock({
-    //             signedTx,
-    //             requestType: "WaitForLocalExecution",
-    //             options: {
-    //             showEffects: true,
-    //             showEvents: true,
-    //             },
-    //         })
-    //         .then((resp) => {
-    //             setIsLoading(false);
-    //             console.log(resp);
-    //             if (resp.effects?.status.status === "success") {
-    //                 console.log("Proof of experience generated");
-    //                 toast.success("Proof of experience generated");
-    //                 return 
-    //             } else {
-    //                 console.log("Proof of experience generation failed");
-    //                 toast.error("Proof of experience generation failed.");
-    //                 return
-    //             }
-    //         })
-    //         .catch((err) => {
-    //             setIsLoading(false);
-    //             console.log("Proof of experience generation failed");
-    //             console.log(err);
-    //             toast.error("Something went wrong, Proof of experience generation failed.");
-    //             });
-    //         })
-    // }
-    // return { handleServicePoEGeneration };
-
-}
+  return { handleServicePoEGeneration };
+};

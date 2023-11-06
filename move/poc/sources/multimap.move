@@ -18,9 +18,6 @@ module poc::multimap {
     /// Trying to access an element of the map at an invalid index
     const EIndexOutOfBounds: u64 = 3;
 
-    /// Trying to pop from a map that is empty
-    const EMapEmpty: u64 = 4;
-
     struct MultiMap<K: copy> has copy, drop, store {
         contents: vector<Entry<K>>,
     }

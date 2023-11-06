@@ -1,7 +1,6 @@
 module poc::service {
 
     use std::string::String;
-    use std::vector;
 
     use sui::balance::{Self, Balance};
     use sui::clock::Clock;
@@ -15,7 +14,6 @@ module poc::service {
 
 // ====================== Consts =======================
 
-    const ENoPicture: u64 = 0;
     const EInvalidPermission: u64 = 1;
     const EMaxReviews: u64 = 2;
 
@@ -41,7 +39,12 @@ module poc::service {
         // rating: u8,
     }
 
-// ======================== Functions ===================
+    struct ProofOfExperience has key {
+        id: UID,
+        service_id: ID,
+    }
+
+    // ======================== Functions ===================
 
     public fun create_service(
         name: String,
@@ -71,18 +74,18 @@ module poc::service {
     }
 
     public fun write_new_review(
-        cap: &AdminCap,
-        service: &mut Service, 
+        service: &mut Service,
         owner: address,
         hash_of_review: String,
         len_of_review: u64,
         clock: &Clock,
+        poe: ProofOfExperience,
         ctx: &mut TxContext
     ) {
-        // Only admin(service owner) can submit a review
-        // after verifying that reviewer has proof of experience (QR code)
-        assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
+        assert!(poe.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
         assert!(multimap::size<ID>(&service.reviews) < 500, EMaxReviews);
+        let ProofOfExperience {id, service_id: _} = poe;
+        object::delete(id);
         let (id, ts) = review::new_review(owner, object::uid_to_inner(&service.id), hash_of_review, len_of_review, true, clock, ctx);
         multimap::insert<ID>(&mut service.reviews, id, ts);
     }
@@ -111,9 +114,21 @@ module poc::service {
         // distribute a fixed amount to top 10 reviewers
     }
 
-    // public fun generate_proof_of_experience() {
-    //     // generate an NFT and transfer it to customer who can use it to write a review with vm
-    // }
+    public fun generate_proof_of_experience(
+        cap: &AdminCap,
+        service: &Service,
+        recipient: address,
+        ctx: &mut TxContext
+    ) {
+        // generate an NFT and transfer it to customer who can use it to write a review with vm
+        assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
+        let poe = ProofOfExperience {
+            id: object::new(ctx),
+            service_id: cap.service_id
+        };
+        // ToDo - add event emit
+        transfer::transfer(poe, recipient);
+    }
 
     public fun recompute_ts_for_all(
         cap: &AdminCap,
