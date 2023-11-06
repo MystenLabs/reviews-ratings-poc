@@ -18,11 +18,10 @@ export const useServicePoEGeneration = () => {
       arguments: [
         tx.object(adminCap),
         tx.object(serviceId),
-        tx.object(recipient),
+        tx.pure(recipient),
       ],
     });
     tx.setGasBudget(1000000000);
-    console.log("Generating poe for " + recipient);
     return signTransactionBlock({
       transactionBlock: tx,
     })
