@@ -27,13 +27,13 @@ export const useGetNavigations = () => {
     if (user.role === USER_ROLES.ROLE_2) {
       userNavigations = [
         {
-          title: "Home",
+          title: "Services",
           href: `/${USER_ROLES.ROLE_2}`,
         },
-        // {
-        //   title: "Account",
-        //   href: "/account",
-        // },
+        {
+          title: "My POEs",
+          href: "/user/ownedPoes",
+        },
         // {
         //   title: `${userRoleName} Test Page`,
         //   href: `/${USER_ROLES.ROLE_2}/test`,
@@ -42,7 +42,7 @@ export const useGetNavigations = () => {
     } else if (user.role === USER_ROLES.ROLE_1) {
       userNavigations = [
         {
-          title: "Home",
+          title: "Services",
           href: `/${USER_ROLES.ROLE_1}`,
         },
         {
