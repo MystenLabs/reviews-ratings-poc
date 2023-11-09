@@ -2,10 +2,11 @@
 
 import React, { useState } from "react";
 import { useGetOwnedPoes } from "@/app/hooks/useGetOwnedPoes";
-import { Button, Modal, Label, Textarea, TextInput } from "flowbite-react";
+import { Button } from "flowbite-react";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import crypto from "crypto";
 import { useWalletKit } from "@mysten/wallet-kit";
+import { AddReview } from "@/app/components/review/AddReview";
 
 const OwnedServicesPage = () => {
   const { signAndExecuteTransactionBlock, currentAccount } = useWalletKit();
@@ -120,50 +121,15 @@ const OwnedServicesPage = () => {
           </table>
         )}
 
-        <Modal show={openModal} onClose={() => setOpenModal(false)}>
-          <Modal.Header>Write a New Review</Modal.Header>
-          <Modal.Body>
-            <div className="space-y-6">
-              <div>
-                <div className="mb-2 block">
-                  <Label>Service Id</Label>
-                </div>
-                <TextInput id="serviceId" value={serviceId} disabled />
-              </div>
-              <div>
-                <div className="mb-2 block">
-                  <Label>POE Id</Label>
-                </div>
-                <TextInput id="poeId" value={poeId} disabled />
-              </div>
-              <div>
-                <div className="mb-2 block">
-                  <Label htmlFor="reviewBody" value="Content" />
-                </div>
-                <Textarea
-                  id="reviewBody"
-                  placeholder="Leave a review"
-                  value={reviewBody}
-                  onChange={(event) => setReviewBody(event.target.value)}
-                  required
-                />
-              </div>
-            </div>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button
-              onClick={() => {
-                setOpenModal(false);
-                onSubmitReview();
-              }}
-            >
-              Submit
-            </Button>
-            <Button color="gray" onClick={() => setOpenModal(false)}>
-              Cancel
-            </Button>
-          </Modal.Footer>
-        </Modal>
+        <AddReview
+          serviceId={serviceId}
+          poeId={poeId}
+          reviewBody={reviewBody}
+          setReviewBody={setReviewBody}
+          openModal={openModal}
+          setOpenModal={setOpenModal}
+          onSubmitReview={onSubmitReview}
+        />
       </div>
     </div>
   );
