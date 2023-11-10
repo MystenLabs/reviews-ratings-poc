@@ -138,7 +138,7 @@ export default function Service() {
             <thead>
               <tr>
                 <th>Review ID</th>
-                <th>Priority</th>
+                <th>Score</th>
                 <th>Action</th>
               </tr>
             </thead>
