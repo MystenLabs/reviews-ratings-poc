@@ -5,10 +5,10 @@ interface AddReviewProps {
   serviceId: string;
   poeId?: string;
   reviewBody: string;
-  setReviewBody: any;
+  setReviewBody: (value: string) => void;
   openModal: boolean;
-  setOpenModal: any;
-  onSubmitReview: any;
+  setOpenModal: (value: boolean) => void;
+  onSubmitReview: () => void;
 }
 
 export const AddReview = ({
@@ -21,7 +21,7 @@ export const AddReview = ({
   onSubmitReview,
 }: AddReviewProps) => {
   return (
-    <Modal show={openModal} onClose={() => setOpenModal(false)}>
+    <Modal dismissible show={openModal} onClose={() => setOpenModal(false)}>
       <Modal.Header>Write a New Review</Modal.Header>
       <Modal.Body>
         <div className="space-y-6">
