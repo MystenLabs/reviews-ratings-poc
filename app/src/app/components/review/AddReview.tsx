@@ -1,4 +1,11 @@
-import { Button, Label, Modal, Textarea, TextInput } from "flowbite-react";
+import {
+  Button,
+  Label,
+  Modal,
+  RangeSlider,
+  Textarea,
+  TextInput,
+} from "flowbite-react";
 import React from "react";
 
 interface AddReviewProps {
@@ -6,6 +13,8 @@ interface AddReviewProps {
   poeId?: string;
   reviewBody: string;
   setReviewBody: (value: string) => void;
+  overallRate: string;
+  setOverallRate: (value: string) => void;
   openModal: boolean;
   setOpenModal: (value: boolean) => void;
   onSubmitReview: () => void;
@@ -16,6 +25,8 @@ export const AddReview = ({
   poeId,
   reviewBody,
   setReviewBody,
+  overallRate,
+  setOverallRate,
   openModal,
   setOpenModal,
   onSubmitReview,
@@ -49,6 +60,19 @@ export const AddReview = ({
               value={reviewBody}
               onChange={(event) => setReviewBody(event.target.value)}
               required
+            />
+          </div>
+          <div>
+            <div className="mb-2 block">
+              <Label value={`Overall Rate: ${overallRate}`} />
+            </div>
+            <RangeSlider
+              id="overallRate"
+              min="0"
+              max="5"
+              step="1"
+              onChange={(event) => setOverallRate(event.target.value)}
+              className="w-2/5"
             />
           </div>
         </div>

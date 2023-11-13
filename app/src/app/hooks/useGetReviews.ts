@@ -8,7 +8,8 @@ export const useGetReviews = (serviceId: string) => {
   const { suiClient } = useSui();
 
   const [dataReviews, setDataReviews] = useState<any[]>([]);
-  const [dataName, setName] = useState<string>("");
+  const [dataName, setDataName] = useState<string>("");
+  const [dataStars, setDataStars] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
 
@@ -17,7 +18,7 @@ export const useGetReviews = (serviceId: string) => {
       reFetchData();
     } else {
       setDataReviews([]);
-      setName("");
+      setDataName("");
       setIsLoading(false);
       setIsError(false);
     }
@@ -37,15 +38,25 @@ export const useGetReviews = (serviceId: string) => {
       })
       .then((res) => {
         console.log(res);
-        setDataReviews((res.data?.content as SuiMoveObject).fields.reviews.fields.contents);
-        setName((res.data?.content as SuiMoveObject).fields.name);
+        setDataReviews(
+          (res.data?.content as SuiMoveObject).fields.reviews.fields.contents,
+        );
+        setDataName((res.data?.content as SuiMoveObject).fields.name);
+        const len = (res.data?.content as SuiMoveObject).fields.reviews.fields
+          .contents.length;
+        if (len > 0) {
+          setDataStars(
+            (res.data?.content as SuiMoveObject).fields.overall_rate / len,
+          );
+        }
         setIsLoading(false);
         setIsError(false);
       })
       .catch((err) => {
         console.log(err);
         setDataReviews([]);
-        setName("");
+        setDataName("");
+        setDataStars(0);
         setIsLoading(false);
         setIsError(true);
       });
@@ -54,6 +65,7 @@ export const useGetReviews = (serviceId: string) => {
   return {
     dataReviews,
     dataName,
+    dataStars,
     isLoading,
     isError,
     reFetchData,
