@@ -30,6 +30,8 @@ module poc::service {
         reward: u64,
         reviews: MultiMap<ID>, // max size < 500
 
+        overall_rate: u64, // overall rating
+
         name: String
 
         // location: String,
@@ -57,6 +59,7 @@ module poc::service {
             reward: 1000000000,
             reward_pool: balance::zero(),
             reviews: multimap::empty<ID>(),
+            overall_rate: 0,
             name
         };
 
@@ -78,6 +81,7 @@ module poc::service {
         owner: address,
         hash_of_review: String,
         len_of_review: u64,
+        overall_rate: u8,
         clock: &Clock,
         poe: ProofOfExperience,
         ctx: &mut TxContext
@@ -86,8 +90,10 @@ module poc::service {
         assert!(multimap::size<ID>(&service.reviews) < 500, EMaxReviews);
         let ProofOfExperience {id, service_id: _} = poe;
         object::delete(id);
-        let (id, ts) = review::new_review(owner, object::uid_to_inner(&service.id), hash_of_review, len_of_review, true, clock, ctx);
+        let (id, ts) = review::new_review(owner, object::uid_to_inner(&service.id), hash_of_review, len_of_review, true, overall_rate, clock, ctx);
         multimap::insert<ID>(&mut service.reviews, id, ts);
+        let overall_rate = (overall_rate as u64);
+        service.overall_rate = service.overall_rate + overall_rate;
     }
 
     public fun write_new_review_without_poe(
@@ -95,14 +101,15 @@ module poc::service {
         owner: address,
         hash_of_review: String,
         len_of_review: u64,
+        overall_rate: u8,
         clock: &Clock,
         ctx: &mut TxContext
     ) {
-        // DANGER: anyone can submit a review, without going to through any screening
-        // This fun could be removed in future the versions
         assert!(multimap::size<ID>(&service.reviews) < 500, EMaxReviews);
-        let (id, ts) = review::new_review(owner, object::uid_to_inner(&service.id), hash_of_review, len_of_review, false, clock, ctx);
+        let (id, ts) = review::new_review(owner, object::uid_to_inner(&service.id), hash_of_review, len_of_review, false, overall_rate, clock, ctx);
         multimap::insert<ID>(&mut service.reviews, id, ts);
+        let overall_rate = (overall_rate as u64);
+        service.overall_rate = service.overall_rate + overall_rate;
     }
 
     public fun distribute_reward(

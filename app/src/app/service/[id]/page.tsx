@@ -7,7 +7,7 @@ import { AddReview } from "@/app/components/review/AddReview";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import crypto from "crypto";
 import { useWalletKit } from "@mysten/wallet-kit";
-import { Button } from "flowbite-react";
+import { Button, Rating } from "flowbite-react";
 
 interface ReviewType {
   id: string;
@@ -25,13 +25,14 @@ interface ReviewItem {
 export default function Service() {
   const router = useRouter();
   const { id } = useParams();
-  const { dataReviews, dataName, isLoading, currentAccount } =
+  const { dataReviews, dataName, dataStars, isLoading, currentAccount } =
     useGetReviews(id);
 
   const [reviews, setReviews] = useState([] as ReviewType[]);
 
   const [openModal, setOpenModal] = useState(false);
   const [reviewBody, setReviewBody] = useState("");
+  const [overallRate, setOverallRate] = useState("3");
   const { signAndExecuteTransactionBlock } = useWalletKit();
 
   const SUI_CLOCK =
@@ -108,6 +109,7 @@ export default function Service() {
         tx.pure(currentAccount?.address),
         tx.pure(kvStoreKey),
         tx.pure(reviewBody.length),
+        tx.pure(overallRate),
         tx.object(SUI_CLOCK),
       ],
     });
@@ -131,8 +133,21 @@ export default function Service() {
       <h1>Service</h1>
       <div>Name: {`${dataName}`}</div>
       <div>Id: {`${id}`}</div>
+      <div>Reviews: {`${reviews.length}`}</div>
       <div>
-        <div>Reviews: {`${reviews.length}`}</div>
+        Rating:
+        <Rating>
+          <Rating.Star />
+          <Rating.Star />
+          <Rating.Star />
+          <Rating.Star />
+          <Rating.Star filled={false} />
+          <p className="ml-2 text-sm font-medium text-gray-500 dark:text-gray-400">
+            {`${dataStars.toFixed(2)}`} out of 5
+          </p>
+        </Rating>
+      </div>
+      <div>
         {reviews.length > 0 && (
           <table className="table-style">
             <thead>
@@ -169,6 +184,8 @@ export default function Service() {
         serviceId={id}
         reviewBody={reviewBody}
         setReviewBody={setReviewBody}
+        overallRate={overallRate}
+        setOverallRate={setOverallRate}
         openModal={openModal}
         setOpenModal={setOpenModal}
         onSubmitReview={createReview}

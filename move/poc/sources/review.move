@@ -30,6 +30,7 @@ module poc::review {
         time_issued: u64, // dr
         has_poe: bool, // vm: proof of experience
         ts: u64, // total score
+        overall_rate: u8, // overall rating value; max=5
         is_locked: bool,
         fee_to_unlock: u64
     }
@@ -46,6 +47,7 @@ module poc::review {
         hash: String,
         len: u64, 
         has_poe: bool, 
+        overall_rate: u8,
         clock: &Clock, 
         ctx: &mut TxContext
     ): (ID, u64) {
@@ -59,6 +61,7 @@ module poc::review {
             time_issued: clock::timestamp_ms(clock),
             has_poe,
             ts: 0,
+            overall_rate,
             is_locked: false,
             fee_to_unlock: 1000000000
         };

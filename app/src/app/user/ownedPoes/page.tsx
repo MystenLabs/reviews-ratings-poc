@@ -16,6 +16,7 @@ const OwnedServicesPage = () => {
   const [serviceId, setServiceId] = useState("");
   const [poeId, setPoeId] = useState("");
   const [reviewBody, setReviewBody] = useState("");
+  const [overallRate, setOverallRate] = useState("3");
 
   const SUI_CLOCK =
     "0x0000000000000000000000000000000000000000000000000000000000000006";
@@ -65,6 +66,7 @@ const OwnedServicesPage = () => {
         tx.pure(currentAccount?.address),
         tx.pure(kvStoreKey),
         tx.pure(reviewBody.length),
+        tx.pure(overallRate),
         tx.object(SUI_CLOCK),
         tx.object(poeId),
       ],
@@ -126,6 +128,8 @@ const OwnedServicesPage = () => {
           poeId={poeId}
           reviewBody={reviewBody}
           setReviewBody={setReviewBody}
+          overallRate={overallRate}
+          setOverallRate={setOverallRate}
           openModal={openModal}
           setOpenModal={setOpenModal}
           onSubmitReview={onSubmitReview}
