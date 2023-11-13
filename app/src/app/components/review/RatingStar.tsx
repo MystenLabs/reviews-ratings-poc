@@ -15,13 +15,14 @@ export const RatingStar = ({ stars }: Props) => {
   } else {
     str = stars.toFixed(2);
   }
-  let count = Math.round(stars);
+  let numOfStars = Math.round(stars);
 
-  for (let i = 0; i < count; i++) {
-    filledStars.push(<Rating.Star />);
+  let count = 0;
+  for (let i = 0; i < numOfStars; i++) {
+    filledStars.push(<Rating.Star key={count++} />);
   }
-  for (let i = 0; i < 5 - count; i++) {
-    emptyStars.push(<Rating.Star filled={false} />);
+  for (let i = 0; i < 5 - numOfStars; i++) {
+    emptyStars.push(<Rating.Star key={count++} filled={false} />);
   }
 
   return (
