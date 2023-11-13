@@ -8,6 +8,7 @@ import { TransactionBlock } from "@mysten/sui.js/transactions";
 import crypto from "crypto";
 import { useWalletKit } from "@mysten/wallet-kit";
 import { Button, Rating } from "flowbite-react";
+import { RatingStar } from "@/app/components/review/RatingStar";
 
 interface ReviewType {
   id: string;
@@ -134,18 +135,8 @@ export default function Service() {
       <div>Name: {`${dataName}`}</div>
       <div>Id: {`${id}`}</div>
       <div>Reviews: {`${reviews.length}`}</div>
-      <div>
-        Rating:
-        <Rating>
-          <Rating.Star />
-          <Rating.Star />
-          <Rating.Star />
-          <Rating.Star />
-          <Rating.Star filled={false} />
-          <p className="ml-2 text-sm font-medium text-gray-500 dark:text-gray-400">
-            {`${dataStars.toFixed(2)}`} out of 5
-          </p>
-        </Rating>
+      <div className="flex flex-row">
+        Rating: <RatingStar stars={dataStars}></RatingStar>
       </div>
       <div>
         {reviews.length > 0 && (
