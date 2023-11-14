@@ -9,7 +9,8 @@ export default function MemberRootLayout({
 }) {
   const { user } = useAuthentication();
   if (user?.role !== "user") {
-    return "Not allowed";
+    // return "Not allowed";
+    return "";
   }
   return children;
 }

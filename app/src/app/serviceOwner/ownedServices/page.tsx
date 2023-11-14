@@ -39,7 +39,13 @@ const OwnedServicesPage = () => {
           {`  ${alertMsg}`}
         </Alert>
       )}
-      <h1>Services</h1>
+      <h1>Services (Owned)</h1>
+      <p className="my-4 text-lg text-gray-500">
+        These are the services that you own. You can generate an NFT for a
+        customer after the customer pays for the service. The customer may burn
+        the NFT later when writing a review for the service, and receive a
+        higher score for the review.
+      </p>
 
       <div className="container">
         {dataServices.length > 0 && (
@@ -71,7 +77,7 @@ const OwnedServicesPage = () => {
                           setOpenModal(true);
                         }}
                       >
-                        Generate POE
+                        Mint NFT
                         <HiOutlinePlusCircle className="ml-2 h-5 w-5" />
                       </Button>
                     }
@@ -83,7 +89,7 @@ const OwnedServicesPage = () => {
         )}
 
         <Modal show={openModal} onClose={() => setOpenModal(false)}>
-          <Modal.Header>Generate a Proof of Experience</Modal.Header>
+          <Modal.Header>Generate an NFT (Proof of Experience)</Modal.Header>
           <Modal.Body>
             <div className="space-y-6">
               <div>
