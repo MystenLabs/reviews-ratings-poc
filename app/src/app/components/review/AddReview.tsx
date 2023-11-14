@@ -6,31 +6,26 @@ import {
   Textarea,
   TextInput,
 } from "flowbite-react";
-import React from "react";
+import React, {useState} from "react";
 
 interface AddReviewProps {
   serviceId: string;
   poeId?: string;
-  reviewBody: string;
-  setReviewBody: (value: string) => void;
-  overallRate: string;
-  setOverallRate: (value: string) => void;
   openModal: boolean;
   setOpenModal: (value: boolean) => void;
-  onSubmitReview: () => void;
+  onSubmitReview: (reviewBody: string, overallRate: string) => void;
 }
 
 export const AddReview = ({
   serviceId,
   poeId,
-  reviewBody,
-  setReviewBody,
-  overallRate,
-  setOverallRate,
   openModal,
   setOpenModal,
   onSubmitReview,
 }: AddReviewProps) => {
+  const [reviewBody, setReviewBody] = useState("");
+  const [overallRate, setOverallRate] = useState("3");
+
   return (
     <Modal dismissible show={openModal} onClose={() => setOpenModal(false)}>
       <Modal.Header>Write a New Review</Modal.Header>
@@ -81,7 +76,7 @@ export const AddReview = ({
         <Button
           onClick={() => {
             setOpenModal(false);
-            onSubmitReview();
+            onSubmitReview(reviewBody, overallRate);
           }}
         >
           Submit

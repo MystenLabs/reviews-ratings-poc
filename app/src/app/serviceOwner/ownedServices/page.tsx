@@ -4,7 +4,8 @@ import React, { useState } from "react";
 import { useGetOwnedServices } from "@/app/hooks/useGetOwnedServices";
 import { useServicePoEGeneration } from "@/app/hooks/useServicePoeGeneration";
 import { useGetOwnedAdminCaps } from "@/app/hooks/useGetOwnedAdminCaps";
-import { Alert, Button, Modal, Label, TextInput } from "flowbite-react";
+import { Alert, Button, Modal, Label, TextInput, Table } from "flowbite-react";
+import { HiOutlinePlusCircle } from "react-icons/hi";
 
 const OwnedServicesPage = () => {
   const { dataServices } = useGetOwnedServices();
@@ -39,37 +40,46 @@ const OwnedServicesPage = () => {
         </Alert>
       )}
       <h1>Services</h1>
+
       <div className="container">
         {dataServices.length > 0 && (
-          <table className="table-style">
-            <thead>
-              <tr>
-                <th>Service ID</th>
-                <th>Name</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table hoverable className="items-center text-center">
+            <Table.Head>
+              <Table.HeadCell>Name</Table.HeadCell>
+              <Table.HeadCell>Service ID</Table.HeadCell>
+              <Table.HeadCell>Action</Table.HeadCell>
+            </Table.Head>
+            <Table.Body className="divide-y">
               {dataServices.map((item) => (
-                <tr key={item.id}>
-                  <td>{item.id}</td>
-                  <td>{item.name}</td>
-                  <td>
+                <Table.Row
+                  className="bg-white dark:border-gray-700 dark:bg-gray-800"
+                  key={item.id}
+                >
+                  <Table.Cell>{item.name}</Table.Cell>
+                  <Table.Cell>
+                    <div className="overflow-hidden truncate w-48">
+                      {item.id}
+                    </div>
+                  </Table.Cell>
+                  <Table.Cell>
                     {
                       <Button
+                        color="gray"
+                        pill
                         onClick={() => {
                           setServiceId(item.id);
                           setOpenModal(true);
                         }}
                       >
                         Generate POE
+                        <HiOutlinePlusCircle className="ml-2 h-5 w-5" />
                       </Button>
                     }
-                  </td>
-                </tr>
+                  </Table.Cell>
+                </Table.Row>
               ))}
-            </tbody>
-          </table>
+            </Table.Body>
+          </Table>
         )}
 
         <Modal show={openModal} onClose={() => setOpenModal(false)}>
