@@ -7,8 +7,9 @@ import { AddReview } from "@/app/components/review/AddReview";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import crypto from "crypto";
 import { useWalletKit } from "@mysten/wallet-kit";
-import { Button, Rating } from "flowbite-react";
+import { Button, Table } from "flowbite-react";
 import { RatingStar } from "@/app/components/review/RatingStar";
+import { HiOutlineArrowRight, HiOutlinePencilAlt } from "react-icons/hi";
 
 interface ReviewType {
   id: string;
@@ -32,8 +33,6 @@ export default function Service() {
   const [reviews, setReviews] = useState([] as ReviewType[]);
 
   const [openModal, setOpenModal] = useState(false);
-  const [reviewBody, setReviewBody] = useState("");
-  const [overallRate, setOverallRate] = useState("3");
   const { signAndExecuteTransactionBlock } = useWalletKit();
 
   const SUI_CLOCK =
@@ -66,7 +65,10 @@ export default function Service() {
     getReviews();
   }, [currentAccount, isLoading, dataReviews]);
 
-  const createReview = async (): Promise<void> => {
+  const createReview = async (
+    reviewBody: string,
+    overallRate: string,
+  ): Promise<void> => {
     const tx = new TransactionBlock();
 
     console.log(`serviceId=${id}`);
@@ -138,45 +140,49 @@ export default function Service() {
       <div className="flex flex-row">
         Rating: <RatingStar stars={dataStars}></RatingStar>
       </div>
-      <div>
+      <div className="container">
         {reviews.length > 0 && (
-          <table className="table-style">
-            <thead>
-              <tr>
-                <th>Review ID</th>
-                <th>Score</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table hoverable className="items-center text-center">
+            <Table.Head>
+              <Table.HeadCell>Review ID</Table.HeadCell>
+              <Table.HeadCell>Score</Table.HeadCell>
+              <Table.HeadCell>Action</Table.HeadCell>
+            </Table.Head>
+            <Table.Body className="divide-y">
               {reviews.map((item) => (
-                <tr key={item.id}>
-                  <td>{item.id}</td>
-                  <td>{item.priority}</td>
-                  <td>
+                <Table.Row
+                  className="bg-white dark:border-gray-700 dark:bg-gray-800"
+                  key={item.id}
+                >
+                  <Table.Cell>
+                    <div className="overflow-hidden">{item.id}</div>
+                  </Table.Cell>
+                  <Table.Cell>{item.priority}</Table.Cell>
+                  <Table.Cell>
                     {
-                      <button
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                      <Button
+                        color="gray"
+                        pill
                         onClick={() => onDisplayReview(item)}
                       >
-                        More info
-                      </button>
+                        Info
+                        <HiOutlineArrowRight className="ml-2 h-5 w-5" />
+                      </Button>
                     }
-                  </td>
-                </tr>
+                  </Table.Cell>
+                </Table.Row>
               ))}
-            </tbody>
-          </table>
+            </Table.Body>
+          </Table>
         )}
       </div>
 
-      <Button onClick={() => setOpenModal(true)}>Add a new review</Button>
+      <Button color="green" pill onClick={() => setOpenModal(true)}>
+        Add a new review
+        <HiOutlinePencilAlt className="ml-2 h-5 w-5" />
+      </Button>
       <AddReview
         serviceId={id}
-        reviewBody={reviewBody}
-        setReviewBody={setReviewBody}
-        overallRate={overallRate}
-        setOverallRate={setOverallRate}
         openModal={openModal}
         setOpenModal={setOpenModal}
         onSubmitReview={createReview}

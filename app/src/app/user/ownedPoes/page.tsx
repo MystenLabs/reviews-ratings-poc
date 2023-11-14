@@ -2,11 +2,12 @@
 
 import React, { useState } from "react";
 import { useGetOwnedPoes } from "@/app/hooks/useGetOwnedPoes";
-import { Button } from "flowbite-react";
+import { Button, Table } from "flowbite-react";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import crypto from "crypto";
 import { useWalletKit } from "@mysten/wallet-kit";
 import { AddReview } from "@/app/components/review/AddReview";
+import { HiOutlinePencilAlt } from "react-icons/hi";
 
 const OwnedServicesPage = () => {
   const { signAndExecuteTransactionBlock, currentAccount } = useWalletKit();
@@ -15,13 +16,11 @@ const OwnedServicesPage = () => {
   const [openModal, setOpenModal] = useState(false);
   const [serviceId, setServiceId] = useState("");
   const [poeId, setPoeId] = useState("");
-  const [reviewBody, setReviewBody] = useState("");
-  const [overallRate, setOverallRate] = useState("3");
 
   const SUI_CLOCK =
     "0x0000000000000000000000000000000000000000000000000000000000000006";
 
-  const onSubmitReview = async () => {
+  const onSubmitReview = async (reviewBody: string, overallRate: string) => {
     const tx = new TransactionBlock();
 
     console.log(`serviceId=${serviceId}`);
@@ -89,24 +88,27 @@ const OwnedServicesPage = () => {
   return (
     <div className="flex flex-col mx-32 my-10">
       <h1>Services</h1>
-      <div className="container">
+      <div>
         {dataPoes.length > 0 && (
-          <table className="table-style">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Service ID</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table hoverable className="items-center text-center">
+            <Table.Head>
+              <Table.HeadCell>ID</Table.HeadCell>
+              <Table.HeadCell>Service ID</Table.HeadCell>
+              <Table.HeadCell>Action</Table.HeadCell>
+            </Table.Head>
+            <Table.Body className="divide-y">
               {dataPoes.map((item) => (
-                <tr key={item.id.id}>
-                  <td>{item.id.id}</td>
-                  <td>{item.service_id}</td>
-                  <td>
+                <Table.Row
+                  className="bg-white dark:border-gray-700 dark:bg-gray-800"
+                  key={item.id.id}
+                >
+                  <Table.Cell>{item.id.id}</Table.Cell>
+                  <Table.Cell>{item.service_id}</Table.Cell>
+                  <Table.Cell>
                     {
                       <Button
+                        color="gray"
+                        pill
                         onClick={() => {
                           setServiceId(item.service_id);
                           setPoeId(item.id.id);
@@ -114,22 +116,19 @@ const OwnedServicesPage = () => {
                         }}
                       >
                         Write a review
+                        <HiOutlinePencilAlt className="ml-2 h-5 w-5" />
                       </Button>
                     }
-                  </td>
-                </tr>
+                  </Table.Cell>
+                </Table.Row>
               ))}
-            </tbody>
-          </table>
+            </Table.Body>
+          </Table>
         )}
 
         <AddReview
           serviceId={serviceId}
           poeId={poeId}
-          reviewBody={reviewBody}
-          setReviewBody={setReviewBody}
-          overallRate={overallRate}
-          setOverallRate={setOverallRate}
           openModal={openModal}
           setOpenModal={setOpenModal}
           onSubmitReview={onSubmitReview}

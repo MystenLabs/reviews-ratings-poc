@@ -7,6 +7,14 @@ import { useReviewVoting } from "@/app/hooks/useReviewVoting";
 import { useReviewGrantAccess } from "@/app/hooks/useReviewGrantAccess";
 import { useGetOwnedGrantObjects } from "@/app/hooks/useGetOwnedGrantObjects";
 import React, { useState } from "react";
+import { Button } from "flowbite-react";
+import {
+  HiLockClosed,
+  HiLockOpen,
+  HiOutlinePencilAlt,
+  HiThumbDown,
+  HiThumbUp,
+} from "react-icons/hi";
 
 interface GrantType {
   id: {
@@ -200,37 +208,36 @@ export default function Service() {
             ></textarea>
           )}
         </div>
+
         <div className="flex flex-row space-x-6">
           {showLockButton && (
-            <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 w-80 rounded"
-              onClick={() => onLockReview()}
-            >
+            <Button color="light" pill onClick={() => onLockReview()}>
               Lock Review
-            </button>
+              <HiLockClosed className="ml-2 h-5 w-5" />
+            </Button>
           )}
           {showUnlockButton && (
-            <button
-              className="bg-blue-400 hover:bg-blue-700 text-white font-bold py-2 px-4 w-80 rounded"
-              onClick={() => onUnlockReview()}
-            >
+            <Button color="light" pill onClick={() => onUnlockReview()}>
               Unlock Review
-            </button>
+              <HiLockOpen className="ml-2 h-5 w-5" />
+            </Button>
           )}
-        </div>
-        <div className="flex flex-row space-x-6">
-          <button
-            className="bg-green-400 hover:bg-gree-700 text-white font-bold py-2 px-4 w-40 rounded"
+          <Button
+            color="green"
+            pill
             onClick={() => onUpvote(`${dataReview?.service_id}`)}
           >
             Up Vote
-          </button>
-          <button
-            className="bg-red-400 hover:bg-red-700 text-white font-bold py-2 px-4 w-40 rounded"
+            <HiThumbUp className="ml-2 h-5 w-5" />
+          </Button>
+          <Button
+            color="red"
+            pill
             onClick={() => onDownvote(`${dataReview?.service_id}`)}
           >
             Down Vote
-          </button>
+            <HiThumbDown className="ml-2 h-5 w-5" />
+          </Button>
         </div>
       </div>
     );
