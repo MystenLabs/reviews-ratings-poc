@@ -87,12 +87,17 @@ const OwnedServicesPage = () => {
 
   return (
     <div className="flex flex-col mx-32 my-10">
-      <h1>Services</h1>
+      <h1>Recently Visited</h1>
+      <p className="my-4 text-lg text-gray-500">
+        Obtained the following NFTs by visiting the listed restaurants and
+        paying for their services. You may burn an NFT when writing a review for
+        the restaurant, and receive a higher score for the review.
+      </p>
       <div>
         {dataPoes.length > 0 && (
           <Table hoverable className="items-center text-center">
             <Table.Head>
-              <Table.HeadCell>ID</Table.HeadCell>
+              <Table.HeadCell>MY OWNED NFT</Table.HeadCell>
               <Table.HeadCell>Service ID</Table.HeadCell>
               <Table.HeadCell>Action</Table.HeadCell>
             </Table.Head>
@@ -102,8 +107,16 @@ const OwnedServicesPage = () => {
                   className="bg-white dark:border-gray-700 dark:bg-gray-800"
                   key={item.id.id}
                 >
-                  <Table.Cell>{item.id.id}</Table.Cell>
-                  <Table.Cell>{item.service_id}</Table.Cell>
+                  <Table.Cell>
+                    <div className="overflow-hidden truncate w-48">
+                      {item.id.id}
+                    </div>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <div className="overflow-hidden truncate w-48">
+                      {item.service_id}
+                    </div>
+                  </Table.Cell>
                   <Table.Cell>
                     {
                       <Button

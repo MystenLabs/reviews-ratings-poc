@@ -9,7 +9,8 @@ export default function AdminRootLayout({
 }) {
   const { user } = useAuthentication();
   if (user?.role !== "serviceOwner") {
-    return "Not allowed";
+    // return "Not allowed";
+    return "";
   }
   return children;
 }

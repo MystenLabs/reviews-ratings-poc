@@ -4,7 +4,6 @@ import Link from "next/link";
 import { ConnectButton } from "@mysten/wallet-kit";
 import { usePathname } from "next/navigation";
 import { useGetNavigations } from "@/app/hooks/useGetNavigations";
-import { isUserRole } from "@/app/helpers/isUserRole";
 import { useAuthentication } from "@/app/hooks/useAuthentication";
 
 export const Navbar = () => {
@@ -27,45 +26,18 @@ export const Navbar = () => {
       </div>
 
       <div className="col-span-6 flex space-x-3 justify-center">
-        {navigations.map(({ title, href }) => {
-          const pathParts = pathname.split("/").filter((part) => !!part);
-          const pathSuffix = pathParts[pathParts.length - 1];
-          const isAtHome =
-            !pathParts.length ||
-            (pathParts.length === 1 && pathSuffix === `${user.role}`);
-          const isHomeLink = href === "/" || href === `/${user.role}`;
-          const isActive =
-            (isAtHome && isHomeLink) ||
-            (!isHomeLink && pathname.includes(href));
-          console.log({
-            href,
-            isAtHome,
-            isHomeLink,
-            pathParts,
-            pathSuffix,
-            isActive,
-          });
-
-          return (
-            <Link
-              key={href}
-              className={`text-lg bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded`}
-              href={href}
-            >
-              {title}
-            </Link>
-          );
-        })}
-      </div>
-      <div className="col-span-3 flex justify-end gap-[14px]">
-        {!!user.id && (
-          <button
-            onClick={handleLogout}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          >
-            Logout
-          </button>
+        {user.role !== "anonymous" && (
+          <h6 className="mb-4 text-2xl leading-none tracking-tight text-gray-400">
+            logged in as{" "}
+            <span className="underline underline-offset-3 decoration-8 decoration-blue-400 dark:decoration-blue-600">
+              {user.role === "user" && "USER"}
+              {user.role === "serviceOwner" && "SERVICE OWNER"}
+            </span>
+          </h6>
         )}
+      </div>
+
+      <div className="col-span-3 flex justify-end gap-[14px]">
         <ConnectButton />
       </div>
     </div>

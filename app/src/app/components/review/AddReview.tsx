@@ -33,14 +33,14 @@ export const AddReview = ({
         <div className="space-y-6">
           <div>
             <div className="mb-2 block">
-              <Label>Service Id</Label>
+              <Label>Service ID</Label>
             </div>
             <TextInput id="serviceId" value={serviceId} disabled />
           </div>
           {!!poeId && (
             <div>
               <div className="mb-2 block">
-                <Label>POE Id</Label>
+                <Label>NFT ID (Proof of Ownership)</Label>
               </div>
               <TextInput id="poeId" value={poeId} disabled />
             </div>
