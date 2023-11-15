@@ -2,49 +2,40 @@
 
 import React, { useState } from "react";
 import { useGetOwnedServices } from "@/app/hooks/useGetOwnedServices";
-import { useServicePoEGeneration } from "@/app/hooks/useServicePoeGeneration";
 import { useGetOwnedAdminCaps } from "@/app/hooks/useGetOwnedAdminCaps";
 import { Alert, Button, Modal, Label, TextInput, Table } from "flowbite-react";
-import { HiOutlinePlusCircle } from "react-icons/hi";
+import { HiCake } from "react-icons/hi";
+import { useServiceReward } from "@/app/hooks/useServiceRewardDistribution";
 
-const OwnedServicesPage = () => {
+const RewardPage = () => {
   const { dataServices } = useGetOwnedServices();
   const { dataAdminCaps } = useGetOwnedAdminCaps();
-  const { handleServicePoEGeneration } = useServicePoEGeneration();
+  const { handleServiceReward } = useServiceReward();
 
   const [openModal, setOpenModal] = useState(false);
   const [serviceId, setServiceId] = useState("");
-  const [recipient, setRecipient] = useState("");
   const [alertMsg, setAlertMsg] = useState("");
 
-  const onGeneratePOE = () => {
+  const onReward = () => {
     const adminCap = dataAdminCaps.find((item) => item.service_id == serviceId);
     if (adminCap === undefined) {
       setAlertMsg(`AdminCap not found for ${serviceId}`);
       return;
     }
-    if (recipient.length === 0) {
-      setAlertMsg(`Enter a valid recipient address`);
-      return;
-    }
     console.log("adminCaps=" + JSON.stringify(dataAdminCaps));
-    handleServicePoEGeneration(adminCap.id.id, serviceId, recipient);
+    handleServiceReward(adminCap.id.id, serviceId);
   };
 
   return (
     <div className="flex flex-col mx-32 my-10">
       {alertMsg.length > 0 && (
         <Alert color="failure">
-          <span className="font-medium">Failed to generate POE!</span>
+          <span className="font-medium">Failed to Reward!</span>
           {`  ${alertMsg}`}
         </Alert>
       )}
-      <h1>Customer (Proof of Experience)</h1>
-      <p className="my-4 text-lg text-gray-500">
-        Generate an NFT for a customer after the customer pays for the service.
-        The customer may burn the NFT later when writing a review for the
-        service, and receive a higher score for the review.
-      </p>
+      <h1>Reward</h1>
+      <p className="my-4 text-lg text-gray-500">Reward top 10 reviewers.</p>
 
       <div className="container">
         {dataServices.length > 0 && (
@@ -67,18 +58,19 @@ const OwnedServicesPage = () => {
                     </div>
                   </Table.Cell>
                   <Table.Cell>
-                    <Button
-                      className="w-32"
-                      color="gray"
-                      pill
-                      onClick={() => {
-                        setServiceId(item.id);
-                        setOpenModal(true);
-                      }}
-                    >
-                      Mint NFT
-                      <HiOutlinePlusCircle className="ml-2 h-5 w-5" />
-                    </Button>
+                    {
+                      <Button
+                        color="gray"
+                        pill
+                        onClick={() => {
+                          setServiceId(item.id);
+                          setOpenModal(true);
+                        }}
+                      >
+                        Reward
+                        <HiCake className="ml-2 h-5 w-5" />
+                      </Button>
+                    }
                   </Table.Cell>
                 </Table.Row>
               ))}
@@ -87,7 +79,7 @@ const OwnedServicesPage = () => {
         )}
 
         <Modal show={openModal} onClose={() => setOpenModal(false)}>
-          <Modal.Header>Generate an NFT (Proof of Experience)</Modal.Header>
+          <Modal.Header>Top up a reward pool</Modal.Header>
           <Modal.Body>
             <div className="space-y-6">
               <div>
@@ -96,25 +88,13 @@ const OwnedServicesPage = () => {
                 </div>
                 <TextInput id="serviceId" value={serviceId} disabled />
               </div>
-              <div>
-                <div className="mb-2 block">
-                  <Label htmlFor="recipient" value="Recipient Address" />
-                </div>
-                <TextInput
-                  id="recipient"
-                  placeholder=""
-                  value={recipient}
-                  onChange={(event) => setRecipient(event.target.value)}
-                  required
-                />
-              </div>
             </div>
           </Modal.Body>
           <Modal.Footer>
             <Button
               onClick={() => {
                 setOpenModal(false);
-                onGeneratePOE();
+                onReward();
               }}
             >
               Confirm
@@ -129,4 +109,4 @@ const OwnedServicesPage = () => {
   );
 };
 
-export default OwnedServicesPage;
+export default RewardPage;

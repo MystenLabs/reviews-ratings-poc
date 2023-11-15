@@ -40,7 +40,7 @@ const ServiceOwnerPage = () => {
 
   return (
     <div className="flex flex-col mx-32 my-10">
-      <h1>Services</h1>
+      <h1>Dashboard</h1>
       <Services />
       <Button color="green" pill onClick={() => setOpenModal(true)}>
         Add a new service
