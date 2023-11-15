@@ -3,8 +3,9 @@
 import { Sidebar } from "flowbite-react";
 import {
   HiArrowSmLeft,
-  HiArrowSmRight,
+  HiArrowSmRight, HiCake,
   HiChartPie,
+  HiCurrencyDollar,
   HiInbox,
   HiShoppingBag,
   HiTable,
@@ -29,10 +30,26 @@ export const MySidebar = () => {
                 <Sidebar.Item
                   href="/serviceOwner/ownedServices"
                   icon={HiViewBoards}
-                  label="Owned"
+                  label="Owner"
                   labelColor="dark"
                 >
-                  Services
+                  Customer
+                </Sidebar.Item>
+                <Sidebar.Item
+                  href="/serviceOwner/topUp"
+                  icon={HiCurrencyDollar}
+                  label="Owner"
+                  labelColor="dark"
+                >
+                  Top Up
+                </Sidebar.Item>
+                <Sidebar.Item
+                    href="/serviceOwner/reward"
+                    icon={HiCake}
+                    label="Owner"
+                    labelColor="dark"
+                >
+                  Reward
                 </Sidebar.Item>
               </Sidebar.ItemGroup>
             )}

@@ -67,9 +67,14 @@ export const Services = () => {
                 key={item.id}
               >
                 <Table.Cell>
-                  <RatingStar stars={item.stars}></RatingStar>
+                  <div className="w-52">
+                    <RatingStar stars={item.stars}></RatingStar>
+                  </div>
                 </Table.Cell>
-                <Table.Cell>{item.name}</Table.Cell>
+                <Table.Cell>
+                  <div className="w-32">
+                    {item.name}</div>
+                </Table.Cell>
                 <Table.Cell>
                   <div className="overflow-hidden truncate w-24">{item.id}</div>
                 </Table.Cell>

@@ -128,7 +128,7 @@ const OwnedServicesPage = () => {
                           setOpenModal(true);
                         }}
                       >
-                        Write a review
+                        Review
                         <HiOutlinePencilAlt className="ml-2 h-5 w-5" />
                       </Button>
                     }

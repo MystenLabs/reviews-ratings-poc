@@ -3,15 +3,22 @@ import { toast } from "react-hot-toast";
 import { useSui } from "./useSui";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 
-export const useServiceReward = () => {
+export const useServiceTopUp = () => {
   const { executeSignedTransactionBlock } = useSui();
   const { signTransactionBlock } = useWalletKit();
 
-  const handleServiceReward = async (adminCap: string, serviceId: string) => {
+  const handleServiceTopUp = async (
+    serviceId: string,
+    amount: number,
+  ) => {
     const tx = new TransactionBlock();
+    const sendAmount = tx.splitCoins(tx.gas, [tx.pure(amount)]);
     tx.moveCall({
-      target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::distribute_reward`,
-      arguments: [tx.object(adminCap), tx.object(serviceId)],
+      target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::top_up_reward`,
+      arguments: [
+        tx.object(serviceId),
+        sendAmount,
+      ],
     });
     tx.setGasBudget(1000000000);
     return signTransactionBlock({
@@ -29,16 +36,16 @@ export const useServiceReward = () => {
           });
           console.log(resp);
           if (resp.effects?.status.status === "success") {
-            console.log("Reward generated");
-            toast.success("Reward generated");
+            console.log("TopUp generated");
+            toast.success("TopUp generated");
             return;
           } else {
-            console.log("Reward generated failed");
-            toast.error("Reward generated failed.");
+            console.log("TopUp generated failed");
+            toast.error("TopUp generated failed.");
             return;
           }
         } catch (err) {
-          console.log("Reward generated failed");
+          console.log("TopUp generated failed");
           console.log(err);
           toast.error("Something went wrong");
         }
@@ -48,5 +55,5 @@ export const useServiceReward = () => {
       });
   };
 
-  return { handleServiceReward };
+  return { handleServiceTopUp };
 };

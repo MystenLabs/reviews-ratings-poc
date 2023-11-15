@@ -102,7 +102,7 @@ module poc::review {
         rev.ts = calculate_total_score(rev);
     }
 
-    public fun lock(rev: &mut Review, ctx: &mut TxContext) {
+    public fun lock(rev: &mut Review, ctx: &TxContext) {
         // only the owner of a Review may lock
         assert!(rev.owner == tx_context::sender(ctx), EInvalidPermission);
         assert!(rev.is_locked == false, EAlreadyLocked);
