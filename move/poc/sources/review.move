@@ -5,7 +5,7 @@ module poc::review {
     use std::string::String;
 
     use sui::clock::{Self, Clock};
-    use sui::coin::{Coin, Self};
+    use sui::coin::{Self, Coin};
     use sui::math;
     use sui::object::{Self, ID, UID};
     use sui::sui::SUI;

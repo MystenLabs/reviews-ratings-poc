@@ -5,6 +5,7 @@ module poc::service {
     use sui::balance::{Self, Balance};
     use sui::clock::Clock;
     use sui::coin::{Self, Coin};
+    use sui::dynamic_field;
     use sui::object::{Self, ID, UID};
     use sui::sui::SUI;
     use sui::transfer;
@@ -35,12 +36,6 @@ module poc::service {
         overall_rate: u64, // overall rating
 
         name: String
-
-        // location: String,
-        // google_map_url: String,
-        // operating_hours: String,
-        // url: String,
-        // rating: u8,
     }
 
     struct ProofOfExperience has key {
@@ -96,6 +91,7 @@ module poc::service {
         multimap::insert<ID>(&mut service.reviews, id, ts);
         let overall_rate = (overall_rate as u64);
         service.overall_rate = service.overall_rate + overall_rate;
+        dynamic_field::add<ID, address>(&mut service.id, id, owner);
     }
 
     public fun write_new_review_without_poe(
@@ -112,6 +108,7 @@ module poc::service {
         multimap::insert<ID>(&mut service.reviews, id, ts);
         let overall_rate = (overall_rate as u64);
         service.overall_rate = service.overall_rate + overall_rate;
+        dynamic_field::add<ID, address>(&mut service.id, id, owner);
     }
 
     public fun distribute_reward(
@@ -120,16 +117,22 @@ module poc::service {
         ctx: &mut TxContext
     ) {
         assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
-
         // distribute a fixed amount to top 10 reviewers
-
-        // TEMP - send some to owner
-        let sub_balance = balance::split(&mut service.reward_pool, service.reward);
-
-        assert!(balance::value(&sub_balance) == service.reward, ENotEnoughBalance);
-
-        let reward = coin::from_balance(sub_balance, ctx);
-        transfer::public_transfer(reward, tx_context::sender(ctx));
+        let len = multimap::size<ID>(&service.reviews);
+        if (len > 10) {
+            len = 10;
+        };
+        // check balance
+        assert!(balance::value(&service.reward_pool) >= (service.reward * len), ENotEnoughBalance);
+        let i = 0;
+        while (i < len) {
+            let sub_balance = balance::split(&mut service.reward_pool, service.reward);
+            let reward = coin::from_balance(sub_balance, ctx);
+            let (review_id, _) = multimap::get_entry_by_idx<ID>(&service.reviews, i);
+            let review_owner_address = dynamic_field::borrow<ID, address>(&service.id, *review_id);
+            transfer::public_transfer(reward, *review_owner_address);
+            i = i + 1;
+        };
     }
 
     public fun top_up_reward(
@@ -154,13 +157,6 @@ module poc::service {
         // ToDo - add event emit
         transfer::transfer(poe, recipient);
     }
-
-    // public fun recompute_ts_for_all(
-    //     cap: &AdminCap,
-    //     service: &mut Service
-    // ) {
-    //     assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
-    // }
 
     public fun reorder(
         service: &mut Service,
