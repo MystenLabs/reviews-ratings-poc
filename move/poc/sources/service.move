@@ -10,6 +10,7 @@ module poc::service {
     use sui::sui::SUI;
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
+    use sui::vec_set::{Self, VecSet};
 
     use poc::multimap::{Self, MultiMap};
     use poc::review::{Self, Review};
@@ -19,6 +20,8 @@ module poc::service {
     const EInvalidPermission: u64 = 1;
     const EMaxReviews: u64 = 2;
     const ENotEnoughBalance: u64 = 3;
+    const EAlreadyExists: u64 = 4;
+    const ENotExists: u64 = 5;
 
 // ====================== Structs ======================
 
@@ -32,6 +35,7 @@ module poc::service {
         reward_pool: Balance<SUI>,
         reward: u64,
         reviews: MultiMap<ID>, // max size < 500
+        moderators: VecSet<address>,
 
         overall_rate: u64, // overall rating
 
@@ -41,6 +45,16 @@ module poc::service {
     struct ProofOfExperience has key {
         id: UID,
         service_id: ID,
+    }
+
+    struct Moderator has key {
+        id: UID,
+        service_id: ID,
+    }
+
+    struct ReviewRecord has store {
+        owner: address,
+        overall_rate: u8,
     }
 
     // ======================== Functions ===================
@@ -56,6 +70,7 @@ module poc::service {
             reward: 1000000,
             reward_pool: balance::zero(),
             reviews: multimap::empty<ID>(),
+            moderators: vec_set::empty<address>(),
             overall_rate: 0,
             name
         };
@@ -89,9 +104,9 @@ module poc::service {
         object::delete(id);
         let (id, ts) = review::new_review(owner, object::uid_to_inner(&service.id), hash_of_review, len_of_review, true, overall_rate, clock, ctx);
         multimap::insert<ID>(&mut service.reviews, id, ts);
+        dynamic_field::add<ID, ReviewRecord>(&mut service.id, id, ReviewRecord{owner, overall_rate});
         let overall_rate = (overall_rate as u64);
         service.overall_rate = service.overall_rate + overall_rate;
-        dynamic_field::add<ID, address>(&mut service.id, id, owner);
     }
 
     public fun write_new_review_without_poe(
@@ -106,9 +121,9 @@ module poc::service {
         assert!(multimap::size<ID>(&service.reviews) < 500, EMaxReviews);
         let (id, ts) = review::new_review(owner, object::uid_to_inner(&service.id), hash_of_review, len_of_review, false, overall_rate, clock, ctx);
         multimap::insert<ID>(&mut service.reviews, id, ts);
+        dynamic_field::add<ID, ReviewRecord>(&mut service.id, id, ReviewRecord{owner, overall_rate});
         let overall_rate = (overall_rate as u64);
         service.overall_rate = service.overall_rate + overall_rate;
-        dynamic_field::add<ID, address>(&mut service.id, id, owner);
     }
 
     public fun distribute_reward(
@@ -129,8 +144,8 @@ module poc::service {
             let sub_balance = balance::split(&mut service.reward_pool, service.reward);
             let reward = coin::from_balance(sub_balance, ctx);
             let (review_id, _) = multimap::get_entry_by_idx<ID>(&service.reviews, i);
-            let review_owner_address = dynamic_field::borrow<ID, address>(&service.id, *review_id);
-            transfer::public_transfer(reward, *review_owner_address);
+            let record = dynamic_field::borrow<ID, ReviewRecord>(&service.id, *review_id);
+            transfer::public_transfer(reward, record.owner);
             i = i + 1;
         };
     }
@@ -148,7 +163,7 @@ module poc::service {
         recipient: address,
         ctx: &mut TxContext
     ) {
-        // generate an NFT and transfer it to customer who can use it to write a review with vm
+        // generate an NFT and transfer it to customer who can use it to write a review with higher score
         assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
         let poe = ProofOfExperience {
             id: object::new(ctx),
@@ -156,6 +171,47 @@ module poc::service {
         };
         // ToDo - add event emit
         transfer::transfer(poe, recipient);
+    }
+
+    public fun add_moderator(
+        cap: &AdminCap,
+        service: &mut Service,
+        recipient: address,
+        ctx: &mut TxContext
+    ) {
+        // generate an NFT and transfer it to moderator who may use it to delete reviews
+        assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
+        assert!(!vec_set::contains<address>(&service.moderators, &recipient), EAlreadyExists);
+        vec_set::insert<address>(&mut service.moderators, recipient);
+        let mod = Moderator {
+            id: object::new(ctx),
+            service_id: cap.service_id
+        };
+        transfer::transfer(mod, recipient);
+    }
+
+    public fun remove_moderator(
+        cap: &AdminCap,
+        service: &mut Service,
+        addr: address
+    ) {
+        assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
+        assert!(vec_set::contains<address>(&service.moderators, &addr), EAlreadyExists);
+        vec_set::remove<address>(&mut service.moderators, &addr);
+    }
+
+    public fun remove_review(
+        mod: &Moderator,
+        service: &mut Service,
+        review_id: ID,
+        ctx: &TxContext
+    ) {
+        assert!(mod.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
+        assert!(vec_set::contains<address>(&service.moderators, &tx_context::sender(ctx)), EInvalidPermission);
+        assert!(multimap::contains<ID>(&service.reviews, &review_id), ENotExists);
+        multimap::remove<ID>(&mut service.reviews, &review_id);
+        let record = dynamic_field::borrow<ID, ReviewRecord>(&service.id, review_id);
+        service.overall_rate = service.overall_rate - (record.overall_rate as u64);
     }
 
     public fun reorder(
