@@ -3,11 +3,11 @@ import { toast } from "react-hot-toast";
 import { useSui } from "./useSui";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 
-export const useServiceAddModerator = () => {
+export const useServiceModerator = () => {
   const { executeSignedTransactionBlock } = useSui();
   const { signTransactionBlock } = useWalletKit();
 
-  const handleServiceAddModerator = async (
+  const handleAddModerator = async (
     adminCap: string,
     serviceId: string,
     recipient: string,
@@ -56,5 +56,46 @@ export const useServiceAddModerator = () => {
       });
   };
 
-  return { handleServiceAddModerator };
+  const handleRemoveReview = async (moderatorId: string, serviceId: string, reviewId: string) => {
+    const tx = new TransactionBlock();
+    tx.moveCall({
+      target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::remove_review`,
+      arguments: [tx.object(moderatorId), tx.object(serviceId), tx.pure(reviewId)],
+    });
+    tx.setGasBudget(1000000000);
+    return signTransactionBlock({
+      transactionBlock: tx,
+    })
+        .then(async (signedTx: any) => {
+          try {
+            let resp = await executeSignedTransactionBlock({
+              signedTx,
+              requestType: "WaitForLocalExecution",
+              options: {
+                showEffects: true,
+                showEvents: true,
+              },
+            });
+            console.log(resp);
+            if (resp.effects?.status.status === "success") {
+              console.log("Review deleted");
+              toast.success("Review deleted");
+              return;
+            } else {
+              console.log("Review delete failed");
+              toast.error("Review delete failed.");
+              return;
+            }
+          } catch (err) {
+            console.log("Review delete failed");
+            console.log(err);
+            toast.error("Something went wrong");
+          }
+        })
+        .catch(() => {
+          console.log("Error while signing tx");
+        });
+  };
+
+  return { handleAddModerator, handleRemoveReview };
 };
