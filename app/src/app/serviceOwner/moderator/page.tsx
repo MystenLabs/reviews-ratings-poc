@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useGetOwnedServices } from "@/app/hooks/useGetOwnedServices";
-import { useServiceAddModerator } from "@/app/hooks/useServiceAddModerator";
+import { useServiceModerator } from "@/app/hooks/useServiceModerator";
 import { useGetOwnedAdminCaps } from "@/app/hooks/useGetOwnedAdminCaps";
 import { Alert, Button, Modal, Label, TextInput, Table } from "flowbite-react";
 import { HiOutlinePlusCircle } from "react-icons/hi";
@@ -10,7 +10,7 @@ import { HiOutlinePlusCircle } from "react-icons/hi";
 const ModeratorPage = () => {
   const { dataServices } = useGetOwnedServices();
   const { dataAdminCaps } = useGetOwnedAdminCaps();
-  const { handleServiceAddModerator } = useServiceAddModerator();
+  const { handleAddModerator } = useServiceModerator();
 
   const [openModal, setOpenModal] = useState(false);
   const [serviceId, setServiceId] = useState("");
@@ -28,7 +28,7 @@ const ModeratorPage = () => {
       return;
     }
     console.log("adminCaps=" + JSON.stringify(dataAdminCaps));
-    handleServiceAddModerator(adminCap.id.id, serviceId, moderatorAddress);
+    handleAddModerator(adminCap.id.id, serviceId, moderatorAddress);
   };
 
   return (

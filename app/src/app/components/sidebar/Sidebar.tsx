@@ -10,6 +10,7 @@ import {
   HiUser,
 } from "react-icons/hi";
 import { useAuthentication } from "@/app/hooks/useAuthentication";
+import { HiRocketLaunch } from "react-icons/hi2";
 
 export const MySidebar = () => {
   const { user, handleLogout } = useAuthentication();
@@ -64,8 +65,11 @@ export const MySidebar = () => {
                 <Sidebar.Item href="/user" icon={HiChartPie}>
                   Services
                 </Sidebar.Item>
-                <Sidebar.Item href="/user/ownedPoes" icon={HiUser}>
+                <Sidebar.Item href="/user/ownedPoes" icon={HiRocketLaunch}>
                   Recently Visited
+                </Sidebar.Item>
+                <Sidebar.Item href="/user/moderator" icon={HiStar}>
+                  Moderator For
                 </Sidebar.Item>
               </Sidebar.ItemGroup>
             )}
