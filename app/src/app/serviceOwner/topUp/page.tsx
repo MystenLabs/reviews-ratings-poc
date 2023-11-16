@@ -15,12 +15,13 @@ const TopUpPage = () => {
   const [amount, setAmount] = useState(0);
   const [alertMsg, setAlertMsg] = useState("");
 
-  const onTopUp = () => {
+  const onTopUp = async () => {
     if (amount < 100) {
       setAlertMsg(`Enter a valid amount`);
       return;
     }
-    handleServiceTopUp(serviceId, amount);
+    await handleServiceTopUp(serviceId, amount);
+    window.location.reload();
   };
 
   return (
@@ -40,6 +41,7 @@ const TopUpPage = () => {
             <Table.Head>
               <Table.HeadCell>Name</Table.HeadCell>
               <Table.HeadCell>Service ID</Table.HeadCell>
+              <Table.HeadCell>Balance</Table.HeadCell>
               <Table.HeadCell>Action</Table.HeadCell>
             </Table.Head>
             <Table.Body className="divide-y">
@@ -48,26 +50,31 @@ const TopUpPage = () => {
                   className="bg-white dark:border-gray-700 dark:bg-gray-800"
                   key={item.id}
                 >
-                  <Table.Cell>{item.name}</Table.Cell>
+                  <Table.Cell>
+                    <div className="w-40">{item.name}</div>
+                  </Table.Cell>
                   <Table.Cell>
                     <div className="overflow-hidden truncate w-48">
                       {item.id}
                     </div>
                   </Table.Cell>
+                  <Table.Cell>{item.pool?.toLocaleString("en-US")}</Table.Cell>
                   <Table.Cell>
-                    {
-                      <Button
-                        color="gray"
-                        pill
-                        onClick={() => {
-                          setServiceId(item.id);
-                          setOpenModal(true);
-                        }}
-                      >
-                        Top Up
-                        <HiCurrencyDollar className="ml-2 h-5 w-5" />
-                      </Button>
-                    }
+                    <div className="w-32">
+                      {
+                        <Button
+                          color="gray"
+                          pill
+                          onClick={() => {
+                            setServiceId(item.id);
+                            setOpenModal(true);
+                          }}
+                        >
+                          Top Up
+                          <HiCurrencyDollar className="ml-2 h-5 w-5" />
+                        </Button>
+                      }
+                    </div>
                   </Table.Cell>
                 </Table.Row>
               ))}
