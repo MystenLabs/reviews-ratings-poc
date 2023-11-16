@@ -16,21 +16,20 @@ export const useGetOwnedServices = () => {
 
   useEffect(() => {
     if (servicesIsLoading) return;
-    reFetchData();
-  }, [currentAccount, servicesIsLoading]);
-
-  const reFetchData = async () => {
     const servicesPromises = serviceList.map(async (serviceId: string) => {
       const obj = await suiClient.getObject({
         id: serviceId,
         options: { showContent: true },
       });
-      const serviceName = (obj.data?.content as SuiMoveObject).fields.name;
+      const name = (obj.data?.content as SuiMoveObject).fields.name;
+      const stars = (obj.data?.content as SuiMoveObject).fields.overall_rate;
+      const reward = (obj.data?.content as SuiMoveObject).fields.reward;
+      const pool = (obj.data?.content as SuiMoveObject).fields.reward_pool;
       console.log(`obj: ${JSON.stringify(obj.data)}`);
-      return { id: serviceId, name: serviceName };
+      return { id: serviceId, name, stars, reward, pool };
     });
-    setServices(await Promise.all(servicesPromises));
-  };
+    Promise.all(servicesPromises).then((data) => setServices(data));
+  }, [currentAccount, servicesIsLoading]);
 
   return {
     dataServices: services,

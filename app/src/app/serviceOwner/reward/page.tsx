@@ -43,6 +43,7 @@ const RewardPage = () => {
             <Table.Head>
               <Table.HeadCell>Name</Table.HeadCell>
               <Table.HeadCell>Service ID</Table.HeadCell>
+              <Table.HeadCell>Reward</Table.HeadCell>
               <Table.HeadCell>Action</Table.HeadCell>
             </Table.Head>
             <Table.Body className="divide-y">
@@ -51,12 +52,15 @@ const RewardPage = () => {
                   className="bg-white dark:border-gray-700 dark:bg-gray-800"
                   key={item.id}
                 >
-                  <Table.Cell>{item.name}</Table.Cell>
+                  <Table.Cell>
+                    <div className="w-40">{item.name}</div>
+                  </Table.Cell>
                   <Table.Cell>
                     <div className="overflow-hidden truncate w-48">
                       {item.id}
                     </div>
                   </Table.Cell>
+                  <Table.Cell>{item.reward}</Table.Cell>
                   <Table.Cell>
                     {
                       <Button
