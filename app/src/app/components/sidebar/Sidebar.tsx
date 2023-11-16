@@ -3,14 +3,11 @@
 import { Sidebar } from "flowbite-react";
 import {
   HiArrowSmLeft,
-  HiArrowSmRight, HiCake,
+  HiCake,
   HiChartPie,
   HiCurrencyDollar,
-  HiInbox,
-  HiShoppingBag,
-  HiTable,
+  HiStar,
   HiUser,
-  HiViewBoards,
 } from "react-icons/hi";
 import { useAuthentication } from "@/app/hooks/useAuthentication";
 
@@ -29,11 +26,19 @@ export const MySidebar = () => {
                 </Sidebar.Item>
                 <Sidebar.Item
                   href="/serviceOwner/ownedServices"
-                  icon={HiViewBoards}
+                  icon={HiUser}
                   label="Owner"
                   labelColor="dark"
                 >
                   Customer
+                </Sidebar.Item>
+                <Sidebar.Item
+                  href="/serviceOwner/moderator"
+                  icon={HiStar}
+                  label="Owner"
+                  labelColor="dark"
+                >
+                  Moderator
                 </Sidebar.Item>
                 <Sidebar.Item
                   href="/serviceOwner/topUp"
@@ -44,10 +49,10 @@ export const MySidebar = () => {
                   Top Up
                 </Sidebar.Item>
                 <Sidebar.Item
-                    href="/serviceOwner/reward"
-                    icon={HiCake}
-                    label="Owner"
-                    labelColor="dark"
+                  href="/serviceOwner/reward"
+                  icon={HiCake}
+                  label="Owner"
+                  labelColor="dark"
                 >
                   Reward
                 </Sidebar.Item>
