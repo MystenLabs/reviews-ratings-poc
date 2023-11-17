@@ -196,22 +196,28 @@ module poc::service {
         addr: address
     ) {
         assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
-        assert!(vec_set::contains<address>(&service.moderators, &addr), EAlreadyExists);
+        assert!(vec_set::contains<address>(&service.moderators, &addr), ENotExists);
         vec_set::remove<address>(&mut service.moderators, &addr);
     }
 
     public fun remove_review(
-        mod: &Moderator,
+        mod: Moderator,
         service: &mut Service,
         review_id: ID,
         ctx: &TxContext
     ) {
         assert!(mod.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
-        assert!(vec_set::contains<address>(&service.moderators, &tx_context::sender(ctx)), EInvalidPermission);
+        if (!vec_set::contains<address>(&service.moderators, &tx_context::sender(ctx))) {
+            // remove moderator NFT
+            let Moderator {id, service_id: _} = mod;
+            object::delete(id);
+            return
+        };
         assert!(multimap::contains<ID>(&service.reviews, &review_id), ENotExists);
         multimap::remove<ID>(&mut service.reviews, &review_id);
         let record = dynamic_field::borrow<ID, ReviewRecord>(&service.id, review_id);
         service.overall_rate = service.overall_rate - (record.overall_rate as u64);
+        transfer::transfer(mod, tx_context::sender(ctx));
     }
 
     public fun reorder(
