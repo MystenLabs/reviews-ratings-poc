@@ -1,24 +1,22 @@
 import { useWalletKit } from "@mysten/wallet-kit";
 import { useEffect, useState } from "react";
 import { useSui } from "./useSui";
-import { useGetServices } from "@/app/hooks/useGetServices";
 import { Service as ServiceType } from "@/app/types/Service";
 import { SuiMoveObject } from "@mysten/sui.js";
+import { useGetOwnedAdminCaps } from "@/app/hooks/useGetOwnedAdminCaps";
 
 export const useGetOwnedServices = () => {
   const { currentAccount } = useWalletKit();
   const { suiClient } = useSui();
 
-  const { serviceList, isLoading: servicesIsLoading } = useGetServices(
-    process.env.NEXT_PUBLIC_DASHBOARD_ID as string,
-  );
+  const { dataAdminCaps, isLoading } = useGetOwnedAdminCaps();
   const [services, setServices] = useState([] as ServiceType[]);
 
   useEffect(() => {
-    if (servicesIsLoading) return;
-    const servicesPromises = serviceList.map(async (serviceId: string) => {
+    if (isLoading) return;
+    const servicesPromises = dataAdminCaps.map(async (item) => {
       const obj = await suiClient.getObject({
-        id: serviceId,
+        id: item.service_id,
         options: { showContent: true },
       });
       const name = (obj.data?.content as SuiMoveObject).fields.name;
@@ -26,10 +24,10 @@ export const useGetOwnedServices = () => {
       const reward = (obj.data?.content as SuiMoveObject).fields.reward;
       const pool = (obj.data?.content as SuiMoveObject).fields.reward_pool;
       console.log(`obj: ${JSON.stringify(obj.data)}`);
-      return { id: serviceId, name, stars, reward, pool };
+      return { id: item.service_id, name, stars, reward, pool };
     });
     Promise.all(servicesPromises).then((data) => setServices(data));
-  }, [currentAccount, servicesIsLoading]);
+  }, [currentAccount, isLoading]);
 
   return {
     dataServices: services,

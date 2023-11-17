@@ -1,7 +1,6 @@
 import { useWalletKit } from "@mysten/wallet-kit";
 import { useEffect, useState } from "react";
 import { useSui } from "./useSui";
-import { SuiMoveObject } from "@mysten/sui.js";
 
 export const useGetOwnedAdminCaps = () => {
   const { currentAccount } = useWalletKit();
@@ -16,6 +15,7 @@ export const useGetOwnedAdminCaps = () => {
   }, [currentAccount]);
 
   const reFetchData = async () => {
+    setIsLoading(true);
     suiClient
       .getOwnedObjects({
         owner: currentAccount?.address!,
@@ -42,5 +42,6 @@ export const useGetOwnedAdminCaps = () => {
 
   return {
     dataAdminCaps: data.map(({ data }) => data.content.fields),
+    isLoading,
   };
 };
