@@ -88,6 +88,7 @@ export default function Service() {
       dataGrants.map((grant: GrantType) => {
         if (grant.owner === currentAccount?.address && grant.review_id === id) {
           hasGrant = true;
+          showUnlockButton = false;
         }
       });
     }
