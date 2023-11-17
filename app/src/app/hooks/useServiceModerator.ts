@@ -56,6 +56,55 @@ export const useServiceModerator = () => {
       });
   };
 
+  const handleRemoveModerator = async (
+      adminCap: string,
+      serviceId: string,
+      addr: string,
+  ) => {
+    const tx = new TransactionBlock();
+    tx.moveCall({
+      target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::remove_moderator`,
+      arguments: [
+        tx.object(adminCap),
+        tx.object(serviceId),
+        tx.pure(addr),
+      ],
+    });
+    tx.setGasBudget(1000000000);
+    return signTransactionBlock({
+      transactionBlock: tx,
+    })
+        .then(async (signedTx: any) => {
+          try {
+            let resp = await executeSignedTransactionBlock({
+              signedTx,
+              requestType: "WaitForLocalExecution",
+              options: {
+                showEffects: true,
+                showEvents: true,
+              },
+            });
+            console.log(resp);
+            if (resp.effects?.status.status === "success") {
+              console.log("Moderator removed");
+              toast.success("Moderator removed");
+              return;
+            } else {
+              console.log("Moderator removed failed");
+              toast.error("Moderator removed failed.");
+              return;
+            }
+          } catch (err) {
+            console.log("Moderator removed failed");
+            console.log(err);
+            toast.error("Something went wrong");
+          }
+        })
+        .catch(() => {
+          console.log("Error while signing tx");
+        });
+  };
+
   const handleRemoveReview = async (moderatorId: string, serviceId: string, reviewId: string) => {
     const tx = new TransactionBlock();
     tx.moveCall({
@@ -97,5 +146,5 @@ export const useServiceModerator = () => {
         });
   };
 
-  return { handleAddModerator, handleRemoveReview };
+  return { handleAddModerator, handleRemoveModerator, handleRemoveReview };
 };
