@@ -43,7 +43,7 @@ const OwnedServicesPage = () => {
       <p className="my-4 text-lg text-gray-500">
         Generate an NFT for a customer after the customer pays for the service.
         The customer may burn the NFT later when writing a review for the
-        service, and receive a higher score for the review.
+        service and receive a high score for the review.
       </p>
 
       <div className="container">
