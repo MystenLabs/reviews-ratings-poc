@@ -11,13 +11,15 @@ import {
 } from "react-icons/hi";
 import { useAuthentication } from "@/app/hooks/useAuthentication";
 import { HiRocketLaunch } from "react-icons/hi2";
+import { usePathname } from "next/navigation";
 
 export const MySidebar = () => {
+  const pathname = usePathname();
   const { user, handleLogout } = useAuthentication();
 
   return (
     <div>
-      {user.role !== "anonymous" && (
+      {pathname !== "/" && (
         <Sidebar aria-label="My sidecar">
           <Sidebar.Items>
             {user.role === "serviceOwner" && (

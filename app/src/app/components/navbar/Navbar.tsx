@@ -1,14 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { ConnectButton } from "@mysten/wallet-kit";
 import { usePathname } from "next/navigation";
-import { useGetNavigations } from "@/app/hooks/useGetNavigations";
 import { useAuthentication } from "@/app/hooks/useAuthentication";
 
 export const Navbar = () => {
   const pathname = usePathname();
-  const { navigations } = useGetNavigations();
   console.log(pathname);
   const { user, handleLogout } = useAuthentication();
 
@@ -20,13 +17,16 @@ export const Navbar = () => {
       }}
     >
       <div className="col-span-3 flex space-x-3 items-center">
-        <div className="text-xl text-red-600 text-2xl font-bold">
+        <div
+          className="text-red-600 text-2xl font-bold cursor-pointer"
+          onClick={handleLogout}
+        >
           Restaurant Reviews
         </div>
       </div>
 
       <div className="col-span-6 flex space-x-3 justify-center">
-        {user.role !== "anonymous" && (
+        {pathname !== "/" && (
           <h6 className="mb-4 text-2xl leading-none tracking-tight text-gray-400">
             logged in as{" "}
             <span className="underline underline-offset-3 decoration-8 decoration-blue-400 dark:decoration-blue-600">
