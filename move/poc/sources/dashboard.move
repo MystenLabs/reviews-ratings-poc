@@ -7,12 +7,14 @@ module poc::dashboard {
     use sui::tx_context::TxContext;
     use sui::vec_set::{Self, VecSet};
 
+    /// Dashboard is a collection of services
     struct Dashboard has key, store {
         id: UID,
         set: VecSet<ID>,
         service_type: String
     }
 
+    /// Create a new dashboard
     public entry fun create_dashboard(
         service_type: String,
         ctx: &mut TxContext,
@@ -23,10 +25,6 @@ module poc::dashboard {
             service_type
         };
         transfer::share_object(db);
-    }
-
-    public fun list(db: &Dashboard): &vector<ID> {
-        vec_set::keys<ID>(&db.set)
     }
 
     public fun register_service(db: &mut Dashboard, service_id: ID) {

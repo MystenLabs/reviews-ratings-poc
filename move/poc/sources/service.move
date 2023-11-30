@@ -15,21 +15,19 @@ module poc::service {
     use poc::multimap::{Self, MultiMap};
     use poc::review::{Self, Review};
 
-// ====================== Consts =======================
-
     const EInvalidPermission: u64 = 1;
     const EMaxReviews: u64 = 2;
     const ENotEnoughBalance: u64 = 3;
     const EAlreadyExists: u64 = 4;
     const ENotExists: u64 = 5;
 
-// ====================== Structs ======================
-
+    /// A capability that can be used to perform admin operations on a service
     struct AdminCap has key, store {
         id: UID,
         service_id: ID
     }
 
+    /// Represents a service
     struct Service has key, store {
         id: UID,
         reward_pool: Balance<SUI>,
@@ -42,23 +40,25 @@ module poc::service {
         name: String
     }
 
+    /// Represents a proof of experience that can be used to write a review with higher score
     struct ProofOfExperience has key {
         id: UID,
         service_id: ID,
     }
 
+    /// Represents a moderator that can be used to delete reviews
     struct Moderator has key {
         id: UID,
         service_id: ID,
     }
 
+    /// Represents a review record
     struct ReviewRecord has store {
         owner: address,
         overall_rate: u8,
     }
 
-    // ======================== Functions ===================
-
+    /// Creates a new service
     public fun create_service(
         name: String,
         ctx: &mut TxContext,
@@ -82,12 +82,12 @@ module poc::service {
 
         // ToDo - add event emit
 
-        let id = object::uid_to_inner(&service.id);
         transfer::share_object(service);
         transfer::public_transfer(admin_cap, tx_context::sender(ctx));
-        id
+        service_id
     }
 
+    /// Writes a new review
     public fun write_new_review(
         service: &mut Service,
         owner: address,
@@ -109,6 +109,7 @@ module poc::service {
         service.overall_rate = service.overall_rate + overall_rate;
     }
 
+    /// Writes a new review without proof of experience
     public fun write_new_review_without_poe(
         service: &mut Service, 
         owner: address,
@@ -126,6 +127,7 @@ module poc::service {
         service.overall_rate = service.overall_rate + overall_rate;
     }
 
+    /// Distributes rewards
     public fun distribute_reward(
         cap: &AdminCap,
         service: &mut Service,
@@ -150,6 +152,7 @@ module poc::service {
         };
     }
 
+    /// Adds coins to reward pool
     public fun top_up_reward(
         service: &mut Service,
         coin: Coin<SUI>
@@ -157,6 +160,7 @@ module poc::service {
         balance::join(&mut service.reward_pool, coin::into_balance(coin));
     }
 
+    /// Mints a proof of experience for a customer
     public fun generate_proof_of_experience(
         cap: &AdminCap,
         service: &Service,
@@ -173,6 +177,7 @@ module poc::service {
         transfer::transfer(poe, recipient);
     }
 
+    /// Adds a moderator
     public fun add_moderator(
         cap: &AdminCap,
         service: &mut Service,
@@ -190,6 +195,7 @@ module poc::service {
         transfer::transfer(mod, recipient);
     }
 
+    /// Removes a moderator
     public fun remove_moderator(
         cap: &AdminCap,
         service: &mut Service,
@@ -200,6 +206,7 @@ module poc::service {
         vec_set::remove<address>(&mut service.moderators, &addr);
     }
 
+    /// Removes a review (only moderators can do this)
     public fun remove_review(
         mod: Moderator,
         service: &mut Service,
@@ -220,6 +227,7 @@ module poc::service {
         transfer::transfer(mod, tx_context::sender(ctx));
     }
 
+    /// Removes and inserts back a review to update its ranking
     public fun reorder(
         service: &mut Service,
         rev: &Review

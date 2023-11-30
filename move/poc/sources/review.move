@@ -12,13 +12,12 @@ module poc::review {
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
 
-    // Error codes
-    // const ENotEnoughBalance: u64 = 1;
-    const EInvalidPermission: u64 = 2;
-    const EAlreadyLocked: u64 = 3;
-    const ENotEnoughPayment: u64 = 4;
-    const EMaxDownvoteReached: u64 = 5;
+    const EInvalidPermission: u64 = 1;
+    const EAlreadyLocked: u64 = 2;
+    const ENotEnoughPayment: u64 = 3;
+    const EMaxDownvoteReached: u64 = 4;
 
+    /// Represents a review of a service
     struct Review has key, store {
         id: UID,
         owner: address,
@@ -35,12 +34,14 @@ module poc::review {
         fee_to_unlock: u64
     }
 
+    /// Represents a grant to read an obfuscated review
     struct ReviewAccessGrant has key {
         id: UID,
         owner: address,
         review_id: ID
     }
 
+    /// Creates a new review
     public fun new_review(
         owner: address, 
         service_id: ID, 
@@ -74,6 +75,7 @@ module poc::review {
         (id, ts)
     }
 
+    /// Calculates the total score of a review
     fun calculate_total_score(rev: &Review): u64 {
         // compute total score 
         // Result is in 2 decimals points in precision; 100 is actually 1
@@ -98,10 +100,12 @@ module poc::review {
         (is + es) * vm
     }
 
+    /// Updates the total score of a review
     public fun update_total_score(rev: &mut Review) {
         rev.ts = calculate_total_score(rev);
     }
 
+    /// Locks a review
     public fun lock(rev: &mut Review, ctx: &TxContext) {
         // only the owner of a Review may lock
         assert!(rev.owner == tx_context::sender(ctx), EInvalidPermission);
@@ -109,6 +113,7 @@ module poc::review {
         rev.is_locked = true;
     }
 
+    /// Mints a new NFT that grants access to an obfuscated review
     public fun grant_access_to(
         rev: &Review, 
         payment: Coin<SUI>,
@@ -126,11 +131,13 @@ module poc::review {
         transfer::transfer(new_access, recepient);
     }
 
+    /// Upvotes a review
     public fun upvote(rev: &mut Review) {
         rev.votes = rev.votes + 1;
         update_total_score(rev);
     }
 
+    /// Downvotes a review
     public fun downvote(rev: &mut Review) {
         assert!(rev.votes > 0, EMaxDownvoteReached);
         rev.votes = rev.votes - 1;
