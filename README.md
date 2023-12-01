@@ -18,3 +18,8 @@ Leverage blockchain to allow reviewers to own and monetize their feedback, while
   - Rates a review by casting upvote/downvote
 - Moderator
   - Deletes reviews that contain inappropriate content
+
+
+### Sequencial diagram
+
+![seq_diagram](seq_diagram.png)
