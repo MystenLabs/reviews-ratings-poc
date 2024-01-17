@@ -9,7 +9,6 @@ export const useGetReview = (reviewId: string) => {
   const { suiClient } = useSui();
 
   const [dataReview, setDataReview] = useState<Review>();
-  const [dataReviewBody, setDataReviewBody] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
 
@@ -39,19 +38,6 @@ export const useGetReview = (reviewId: string) => {
         // console.log(res);
         setDataReview((res.data?.content as SuiMoveObject).fields as Review);
         // console.log(`hash_of_review=${dataReview?.hash}`);
-        const reviewHash = (res.data?.content as SuiMoveObject).fields.hash;
-        if (reviewHash.length > 0) {
-          await fetch(`/api/review/${reviewHash}`, {
-            method: "GET",
-          })
-            .then((body) => body.json())
-            .then((body) => {
-              // console.log(`review_body=${body}`);
-              setDataReviewBody(body);
-            });
-        } else {
-          return;
-        }
         setIsLoading(false);
         setIsError(false);
         // console.log("review = " + JSON.stringify(dataReview));
@@ -66,7 +52,6 @@ export const useGetReview = (reviewId: string) => {
 
   return {
     dataReview,
-    dataReviewBody,
     isLoading,
     isError,
     reFetchData,

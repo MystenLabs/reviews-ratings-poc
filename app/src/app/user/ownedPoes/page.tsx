@@ -28,43 +28,12 @@ const OwnedServicesPage = () => {
     console.log(`review_body=${reviewBody}`);
     console.log(`review_len=${reviewBody.length}`);
 
-    const firstHash = crypto.createHash("sha256");
-    firstHash.update(reviewBody);
-    const firstReviewHash = firstHash.digest();
-    const secondHash = crypto.createHash("sha256");
-    secondHash.update(firstReviewHash);
-    secondHash.update(reviewBody.length.toString());
-    const kvStoreKey = secondHash.digest("hex");
-
-    let reviewAdded = false;
-    try {
-      const response = await fetch("/api/review", {
-        method: "POST",
-        body: JSON.stringify({ key: kvStoreKey, value: reviewBody }),
-      });
-      const res = await response.json();
-      console.log("Create review response: ", res);
-      if (res.success) {
-        reviewAdded = true;
-      } else {
-        console.error(res.error);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-    console.log(`review_hash=${kvStoreKey}`);
-
-    if (!reviewAdded) {
-      return;
-    }
-
     tx.moveCall({
       target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::write_new_review`,
       arguments: [
         tx.object(serviceId),
         tx.pure(currentAccount?.address),
-        tx.pure(kvStoreKey),
-        tx.pure(reviewBody.length),
+        tx.pure(reviewBody),
         tx.pure(overallRate),
         tx.object(SUI_CLOCK),
         tx.object(poeId),
