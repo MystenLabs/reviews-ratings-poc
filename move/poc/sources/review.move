@@ -23,7 +23,7 @@ module poc::review {
         owner: address,
         service_id: ID,
 
-        hash: String,
+        content: String,
         len: u64, // is
         votes: u64, // es
         time_issued: u64, // dr
@@ -45,19 +45,18 @@ module poc::review {
     public fun new_review(
         owner: address, 
         service_id: ID, 
-        hash: String,
-        len: u64, 
-        has_poe: bool, 
+        content: String,
+        has_poe: bool,
         overall_rate: u8,
         clock: &Clock, 
         ctx: &mut TxContext
     ): (ID, u64) {
         let new_review = Review {
             id: object::new(ctx),
-            owner: owner,
+            owner,
             service_id,
-            hash,
-            len,
+            content,
+            len: 0,
             votes: 10, // start with 10, can go down to 0
             time_issued: clock::timestamp_ms(clock),
             has_poe,
@@ -67,6 +66,7 @@ module poc::review {
             fee_to_unlock: 1000000000
         };
 
+        new_review.len = std::string::length(&content);
         new_review.ts = calculate_total_score(&new_review);
 
         let id = object::uid_to_inner(&new_review.id);

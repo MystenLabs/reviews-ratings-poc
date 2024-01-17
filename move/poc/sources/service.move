@@ -80,8 +80,6 @@ module poc::service {
             service_id
         };
 
-        // ToDo - add event emit
-
         transfer::share_object(service);
         transfer::public_transfer(admin_cap, tx_context::sender(ctx));
         service_id
@@ -91,8 +89,7 @@ module poc::service {
     public fun write_new_review(
         service: &mut Service,
         owner: address,
-        hash_of_review: String,
-        len_of_review: u64,
+        content: String,
         overall_rate: u8,
         clock: &Clock,
         poe: ProofOfExperience,
@@ -102,7 +99,7 @@ module poc::service {
         assert!(multimap::size<ID>(&service.reviews) < 500, EMaxReviews);
         let ProofOfExperience {id, service_id: _} = poe;
         object::delete(id);
-        let (id, ts) = review::new_review(owner, object::uid_to_inner(&service.id), hash_of_review, len_of_review, true, overall_rate, clock, ctx);
+        let (id, ts) = review::new_review(owner, object::uid_to_inner(&service.id), content, true, overall_rate, clock, ctx);
         multimap::insert<ID>(&mut service.reviews, id, ts);
         dynamic_field::add<ID, ReviewRecord>(&mut service.id, id, ReviewRecord{owner, overall_rate});
         let overall_rate = (overall_rate as u64);
@@ -113,14 +110,13 @@ module poc::service {
     public fun write_new_review_without_poe(
         service: &mut Service, 
         owner: address,
-        hash_of_review: String,
-        len_of_review: u64,
+        content: String,
         overall_rate: u8,
         clock: &Clock,
         ctx: &mut TxContext
     ) {
         assert!(multimap::size<ID>(&service.reviews) < 500, EMaxReviews);
-        let (id, ts) = review::new_review(owner, object::uid_to_inner(&service.id), hash_of_review, len_of_review, false, overall_rate, clock, ctx);
+        let (id, ts) = review::new_review(owner, object::uid_to_inner(&service.id), content, false, overall_rate, clock, ctx);
         multimap::insert<ID>(&mut service.reviews, id, ts);
         dynamic_field::add<ID, ReviewRecord>(&mut service.id, id, ReviewRecord{owner, overall_rate});
         let overall_rate = (overall_rate as u64);
