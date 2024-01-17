@@ -5,10 +5,8 @@ module poc::review {
     use std::string::String;
 
     use sui::clock::{Self, Clock};
-    use sui::coin::{Self, Coin};
     use sui::math;
     use sui::object::{Self, ID, UID};
-    use sui::sui::SUI;
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
 
@@ -30,8 +28,6 @@ module poc::review {
         has_poe: bool, // vm: proof of experience
         ts: u64, // total score
         overall_rate: u8, // overall rating value; max=5
-        is_locked: bool,
-        fee_to_unlock: u64
     }
 
     /// Represents a grant to read an obfuscated review
@@ -43,12 +39,12 @@ module poc::review {
 
     /// Creates a new review
     public fun new_review(
-        owner: address, 
-        service_id: ID, 
+        owner: address,
+        service_id: ID,
         content: String,
         has_poe: bool,
         overall_rate: u8,
-        clock: &Clock, 
+        clock: &Clock,
         ctx: &mut TxContext
     ): (ID, u64) {
         let new_review = Review {
@@ -62,8 +58,6 @@ module poc::review {
             has_poe,
             ts: 0,
             overall_rate,
-            is_locked: false,
-            fee_to_unlock: 1000000000
         };
 
         new_review.len = std::string::length(&content);
@@ -84,10 +78,10 @@ module poc::review {
         // IS = len / 100; max = 1.5, min = 0
         let is: u64 = rev.len;
         is = math::min(is, 150);
-        
+
         // ES = # of upvotes; 1 + (0.1 * per upvotes)
         let es: u64 = 10 * rev.votes;
-        
+
         // DR = days remaining until expired; expires in 180 days
         // ToDo
 
@@ -103,32 +97,6 @@ module poc::review {
     /// Updates the total score of a review
     public fun update_total_score(rev: &mut Review) {
         rev.ts = calculate_total_score(rev);
-    }
-
-    /// Locks a review
-    public fun lock(rev: &mut Review, ctx: &TxContext) {
-        // only the owner of a Review may lock
-        assert!(rev.owner == tx_context::sender(ctx), EInvalidPermission);
-        assert!(rev.is_locked == false, EAlreadyLocked);
-        rev.is_locked = true;
-    }
-
-    /// Mints a new NFT that grants access to an obfuscated review
-    public fun grant_access_to(
-        rev: &Review, 
-        payment: Coin<SUI>,
-        recepient: address, 
-        ctx: &mut TxContext
-    ) {
-        assert!(coin::value(&payment) == rev.fee_to_unlock, ENotEnoughPayment);
-        // generate an NFT that consumers can use to have access to obfuscated review
-        let new_access = ReviewAccessGrant {
-            id: object::new(ctx),
-            owner: recepient,
-            review_id: object::uid_to_inner(&rev.id)
-        };
-        transfer::public_transfer(payment, rev.owner);
-        transfer::transfer(new_access, recepient);
     }
 
     /// Upvotes a review

@@ -8,6 +8,4 @@ export interface Review {
     time_issued: number;
     has_poe: boolean;
     ts: number;
-    is_locked: boolean;
-    fee_to_unlock: number;
 }
