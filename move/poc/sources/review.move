@@ -8,19 +8,15 @@ module poc::review {
     use sui::math;
     use sui::object::{Self, ID, UID};
     use sui::transfer;
-    use sui::tx_context::{Self, TxContext};
+    use sui::tx_context::TxContext;
 
-    const EInvalidPermission: u64 = 1;
-    const EAlreadyLocked: u64 = 2;
-    const ENotEnoughPayment: u64 = 3;
-    const EMaxDownvoteReached: u64 = 4;
+    const EMaxDownvoteReached: u64 = 1;
 
     /// Represents a review of a service
     struct Review has key, store {
         id: UID,
         owner: address,
         service_id: ID,
-
         content: String,
         len: u64, // is
         votes: u64, // es
@@ -28,13 +24,6 @@ module poc::review {
         has_poe: bool, // vm: proof of experience
         ts: u64, // total score
         overall_rate: u8, // overall rating value; max=5
-    }
-
-    /// Represents a grant to read an obfuscated review
-    struct ReviewAccessGrant has key {
-        id: UID,
-        owner: address,
-        review_id: ID
     }
 
     /// Creates a new review
@@ -73,7 +62,7 @@ module poc::review {
     fun calculate_total_score(rev: &Review): u64 {
         // compute total score 
         // Result is in 2 decimals points in precision; 100 is actually 1
-        // TS = (IS + ES) * DR * VM
+        // TS = (IS + ES) * VM
 
         // IS = len / 100; max = 1.5, min = 0
         let is: u64 = rev.len;
@@ -81,9 +70,6 @@ module poc::review {
 
         // ES = # of upvotes; 1 + (0.1 * per upvotes)
         let es: u64 = 10 * rev.votes;
-
-        // DR = days remaining until expired; expires in 180 days
-        // ToDo
 
         // VM = either 1.0 or 2.0 (if user has proof of experience)
         let vm: u64 = 1;
