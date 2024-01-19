@@ -1,6 +1,4 @@
 module poc::review {
-    friend poc::service;
-
     use std::string::String;
 
     use sui::clock::{Self, Clock};
@@ -9,7 +7,13 @@ module poc::review {
     use sui::transfer;
     use sui::tx_context::TxContext;
 
+    friend poc::service;
+
     const EMaxDownvoteReached: u64 = 1;
+    const EInvalidContentLen: u64 = 2;
+
+    const MIN_REVIEW_CONTENT_LEN: u64 = 5;
+    const MAX_REVIEW_CONTENT_LEN: u64 = 1000;
 
     /// Represents a review of a service
     struct Review has key, store {
@@ -17,18 +21,18 @@ module poc::review {
         owner: address,
         service_id: ID,
         content: String,
-        len: u64,
         // is
-        votes: u64,
+        len: u64,
         // es
-        time_issued: u64,
+        votes: u64,
         // dr
-        has_poe: bool,
+        time_issued: u64,
         // vm: proof of experience
-        ts: u64,
+        has_poe: bool,
         // total score
-        overall_rate: u8,
+        ts: u64,
         // overall rating value; max=5
+        overall_rate: u8,
     }
 
     /// Creates a new review
@@ -40,27 +44,28 @@ module poc::review {
         overall_rate: u8,
         clock: &Clock,
         ctx: &mut TxContext
-    ): (ID, u64) {
+    ): (ID, u64, u64) {
+        let len = std::string::length(&content);
+        assert!(len > MIN_REVIEW_CONTENT_LEN && len <= MAX_REVIEW_CONTENT_LEN, EInvalidContentLen);
         let new_review = Review {
             id: object::new(ctx),
             owner,
             service_id,
             content,
-            len: 0,
+            len,
             votes: 10, // start with 10, can go down to 0
             time_issued: clock::timestamp_ms(clock),
             has_poe,
             ts: 0,
             overall_rate,
         };
-
-        new_review.len = std::string::length(&content);
         new_review.ts = calculate_total_score(&new_review);
 
         let id = object::uid_to_inner(&new_review.id);
         let ts = new_review.ts;
+        let time_issued = new_review.time_issued;
         transfer::share_object(new_review);
-        (id, ts)
+        (id, ts, time_issued)
     }
 
     /// Deletes a review
@@ -78,7 +83,7 @@ module poc::review {
         // Result is in 2 decimals points in precision; 100 is actually 1
         // TS = (IS + ES) * VM
 
-        // IS = len / 100; max = 1.5, min = 0
+        // IS = len / 100; max = 1.5
         let is: u64 = rev.len;
         is = math::min(is, 150);
 
@@ -114,10 +119,6 @@ module poc::review {
 
     public fun get_id(rev: &Review): ID {
         object::uid_to_inner(&rev.id)
-    }
-
-    public fun get_owner(rev: &Review): address {
-        rev.owner
     }
 
     public fun get_total_score(rev: &Review): u64 {
