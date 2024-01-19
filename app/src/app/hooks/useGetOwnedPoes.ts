@@ -1,7 +1,6 @@
 import { useWalletKit } from "@mysten/wallet-kit";
 import { useEffect, useState } from "react";
 import { useSui } from "./useSui";
-import { SuiMoveObject } from "@mysten/sui.js";
 
 export const useGetOwnedPoes = () => {
   const { currentAccount } = useWalletKit();
