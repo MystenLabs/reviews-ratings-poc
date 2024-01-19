@@ -16,7 +16,7 @@ const DelistedPage = () => {
 
   const onDelete = async () => {
     await handleDeleteReview(delistedId, reviewId);
-    // window.location.reload();
+    window.location.reload();
   };
 
   return (
