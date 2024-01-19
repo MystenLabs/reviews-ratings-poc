@@ -1,5 +1,4 @@
 module poc::service {
-
     use std::string::String;
 
     use sui::balance::{Self, Balance};
@@ -21,7 +20,9 @@ module poc::service {
     const EAlreadyExists: u64 = 4;
     const ENotExists: u64 = 5;
     const ENotDelisted: u64 = 6;
+
     const MAX_REVIEWS: u64 = 1000;
+    const MAX_REVIEWERS_TO_REWARD: u64 = 10;
 
     /// A capability that can be used to perform admin operations on a service
     struct AdminCap has key, store {
@@ -62,6 +63,7 @@ module poc::service {
     struct ReviewRecord has store, drop {
         owner: address,
         overall_rate: u8,
+        time_issued: u64,
     }
 
     /// Creates a new service
@@ -105,7 +107,7 @@ module poc::service {
         assert!(multimap::size<ID>(&service.reviews) < MAX_REVIEWS, EMaxReviews);
         let ProofOfExperience { id, service_id: _ } = poe;
         object::delete(id);
-        let (id, ts) = review::new_review(
+        let (id, ts, time_issued) = review::new_review(
             owner,
             object::uid_to_inner(&service.id),
             content,
@@ -115,7 +117,7 @@ module poc::service {
             ctx
         );
         multimap::insert<ID>(&mut service.reviews, id, ts);
-        dynamic_field::add<ID, ReviewRecord>(&mut service.id, id, ReviewRecord { owner, overall_rate });
+        dynamic_field::add<ID, ReviewRecord>(&mut service.id, id, ReviewRecord { owner, overall_rate, time_issued });
         let overall_rate = (overall_rate as u64);
         service.overall_rate = service.overall_rate + overall_rate;
     }
@@ -130,7 +132,7 @@ module poc::service {
         ctx: &mut TxContext
     ) {
         assert!(multimap::size<ID>(&service.reviews) < MAX_REVIEWS, EMaxReviews);
-        let (id, ts) = review::new_review(
+        let (id, ts, time_issued) = review::new_review(
             owner,
             object::uid_to_inner(&service.id),
             content,
@@ -140,7 +142,7 @@ module poc::service {
             ctx
         );
         multimap::insert<ID>(&mut service.reviews, id, ts);
-        dynamic_field::add<ID, ReviewRecord>(&mut service.id, id, ReviewRecord { owner, overall_rate });
+        dynamic_field::add<ID, ReviewRecord>(&mut service.id, id, ReviewRecord { owner, overall_rate, time_issued });
         let overall_rate = (overall_rate as u64);
         service.overall_rate = service.overall_rate + overall_rate;
     }
@@ -152,10 +154,10 @@ module poc::service {
         ctx: &mut TxContext
     ) {
         assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
-        // distribute a fixed amount to top 10 reviewers
+        // distribute a fixed amount to top MAX_REVIEWERS_TO_REWARD reviewers
         let len = multimap::size<ID>(&service.reviews);
-        if (len > 10) {
-            len = 10;
+        if (len > MAX_REVIEWERS_TO_REWARD) {
+            len = MAX_REVIEWERS_TO_REWARD;
         };
         // check balance
         assert!(balance::value(&service.reward_pool) >= (service.reward * len), ENotEnoughBalance);
@@ -191,7 +193,6 @@ module poc::service {
             id: object::new(ctx),
             service_id: cap.service_id
         };
-        // ToDo - add event emit
         transfer::transfer(poe, recipient);
     }
 
@@ -234,10 +235,39 @@ module poc::service {
         assert!(mod.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
         assert!(vec_set::contains<address>(&service.moderators, &tx_context::sender(ctx)), EInvalidPermission);
         assert!(multimap::contains<ID>(&service.reviews, &review_id), ENotExists);
+        delist_review(service, review_id, ctx);
+    }
+
+    /// Removes old reviews
+    public fun remove_old_reviews(
+        mod: &Moderator,
+        service: &mut Service,
+        threshold_time: u64,
+        ctx: &mut TxContext
+    ) {
+        assert!(mod.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
+        assert!(vec_set::contains<address>(&service.moderators, &tx_context::sender(ctx)), EInvalidPermission);
+        let i = 0;
+        let review_len = multimap::size<ID>(&service.reviews);
+        while (i < review_len) {
+            let (review_id, _) = multimap::get_entry_by_idx<ID>(&service.reviews, i);
+            let record = dynamic_field::borrow<ID, ReviewRecord>(&service.id, *review_id);
+            if (record.time_issued < threshold_time) {
+                delist_review(service, *review_id, ctx);
+            };
+            i = i + 1;
+        };
+    }
+
+    /// Delists a review from ranking
+    fun delist_review(
+        service: &mut Service,
+        review_id: ID,
+        ctx: &mut TxContext
+    ) {
         multimap::remove<ID>(&mut service.reviews, &review_id);
         let record = dynamic_field::remove<ID, ReviewRecord>(&mut service.id, review_id);
         service.overall_rate = service.overall_rate - (record.overall_rate as u64);
-
         let delisted = Delisted {
             id: object::new(ctx),
             review_id

@@ -1,5 +1,4 @@
 module poc::dashboard {
-
     use std::string::String;
 
     use sui::object::{Self, ID, UID};
@@ -30,5 +29,4 @@ module poc::dashboard {
     public fun register_service(db: &mut Dashboard, service_id: ID) {
         vec_set::insert<ID>(&mut db.set, service_id);
     }
-
 }
