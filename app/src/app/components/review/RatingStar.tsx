@@ -15,7 +15,7 @@ export const RatingStar = ({ stars }: Props) => {
   } else {
     str = stars.toFixed(2);
   }
-  let numOfStars = Math.round(stars);
+  let numOfStars = Math.floor(stars);
 
   let count = 0;
   for (let i = 0; i < numOfStars; i++) {
