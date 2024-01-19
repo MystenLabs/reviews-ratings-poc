@@ -1,5 +1,4 @@
 module poc::review {
-
     friend poc::service;
 
     use std::string::String;
@@ -18,16 +17,22 @@ module poc::review {
         owner: address,
         service_id: ID,
         content: String,
-        len: u64, // is
-        votes: u64, // es
-        time_issued: u64, // dr
-        has_poe: bool, // vm: proof of experience
-        ts: u64, // total score
-        overall_rate: u8, // overall rating value; max=5
+        len: u64,
+        // is
+        votes: u64,
+        // es
+        time_issued: u64,
+        // dr
+        has_poe: bool,
+        // vm: proof of experience
+        ts: u64,
+        // total score
+        overall_rate: u8,
+        // overall rating value; max=5
     }
 
     /// Creates a new review
-    public fun new_review(
+    public(friend) fun new_review(
         owner: address,
         service_id: ID,
         content: String,
@@ -56,6 +61,15 @@ module poc::review {
         let ts = new_review.ts;
         transfer::share_object(new_review);
         (id, ts)
+    }
+
+    /// Deletes a review
+    public(friend) fun delete_review(rev: Review) {
+        let Review {
+            id, owner: _, service_id: _, content: _, len: _, votes: _, time_issued: _,
+            has_poe: _, ts: _, overall_rate: _
+        } = rev;
+        object::delete(id);
     }
 
     /// Calculates the total score of a review
@@ -102,8 +116,11 @@ module poc::review {
         object::uid_to_inner(&rev.id)
     }
 
+    public fun get_owner(rev: &Review): address {
+        rev.owner
+    }
+
     public fun get_total_score(rev: &Review): u64 {
         rev.ts
     }
-
 }

@@ -3,20 +3,7 @@ import { NavigationLink } from "../types/NavigationLink";
 import { useAuthentication } from "./useAuthentication";
 import { USER_ROLES } from "../constants/USER_ROLES";
 
-const globalNavigations: NavigationLink[] = [
-  // {
-  //   title: "About",
-  //   href: "/about",
-  // },
-  // {
-  //   title: "API Health Check",
-  //   href: "/api/health",
-  // },
-  // {
-  //   title: "API Visits",
-  //   href: "/api/visits",
-  // },
-];
+const globalNavigations: NavigationLink[] = [];
 
 export const useGetNavigations = () => {
   const { user } = useAuthentication();

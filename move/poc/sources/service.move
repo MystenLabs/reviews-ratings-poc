@@ -20,6 +20,8 @@ module poc::service {
     const ENotEnoughBalance: u64 = 3;
     const EAlreadyExists: u64 = 4;
     const ENotExists: u64 = 5;
+    const ENotDelisted: u64 = 6;
+    const MAX_REVIEWS: u64 = 1000;
 
     /// A capability that can be used to perform admin operations on a service
     struct AdminCap has key, store {
@@ -32,11 +34,9 @@ module poc::service {
         id: UID,
         reward_pool: Balance<SUI>,
         reward: u64,
-        reviews: MultiMap<ID>, // max size < 500
+        reviews: MultiMap<ID>,
         moderators: VecSet<address>,
-
-        overall_rate: u64, // overall rating
-
+        overall_rate: u64,
         name: String
     }
 
@@ -46,6 +46,12 @@ module poc::service {
         service_id: ID,
     }
 
+    /// Represents a delisted review
+    struct Delisted has key {
+        id: UID,
+        review_id: ID,
+    }
+
     /// Represents a moderator that can be used to delete reviews
     struct Moderator has key {
         id: UID,
@@ -53,7 +59,7 @@ module poc::service {
     }
 
     /// Represents a review record
-    struct ReviewRecord has store {
+    struct ReviewRecord has store, drop {
         owner: address,
         overall_rate: u8,
     }
@@ -96,29 +102,45 @@ module poc::service {
         ctx: &mut TxContext
     ) {
         assert!(poe.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
-        assert!(multimap::size<ID>(&service.reviews) < 500, EMaxReviews);
-        let ProofOfExperience {id, service_id: _} = poe;
+        assert!(multimap::size<ID>(&service.reviews) < MAX_REVIEWS, EMaxReviews);
+        let ProofOfExperience { id, service_id: _ } = poe;
         object::delete(id);
-        let (id, ts) = review::new_review(owner, object::uid_to_inner(&service.id), content, true, overall_rate, clock, ctx);
+        let (id, ts) = review::new_review(
+            owner,
+            object::uid_to_inner(&service.id),
+            content,
+            true,
+            overall_rate,
+            clock,
+            ctx
+        );
         multimap::insert<ID>(&mut service.reviews, id, ts);
-        dynamic_field::add<ID, ReviewRecord>(&mut service.id, id, ReviewRecord{owner, overall_rate});
+        dynamic_field::add<ID, ReviewRecord>(&mut service.id, id, ReviewRecord { owner, overall_rate });
         let overall_rate = (overall_rate as u64);
         service.overall_rate = service.overall_rate + overall_rate;
     }
 
     /// Writes a new review without proof of experience
     public fun write_new_review_without_poe(
-        service: &mut Service, 
+        service: &mut Service,
         owner: address,
         content: String,
         overall_rate: u8,
         clock: &Clock,
         ctx: &mut TxContext
     ) {
-        assert!(multimap::size<ID>(&service.reviews) < 500, EMaxReviews);
-        let (id, ts) = review::new_review(owner, object::uid_to_inner(&service.id), content, false, overall_rate, clock, ctx);
+        assert!(multimap::size<ID>(&service.reviews) < MAX_REVIEWS, EMaxReviews);
+        let (id, ts) = review::new_review(
+            owner,
+            object::uid_to_inner(&service.id),
+            content,
+            false,
+            overall_rate,
+            clock,
+            ctx
+        );
         multimap::insert<ID>(&mut service.reviews, id, ts);
-        dynamic_field::add<ID, ReviewRecord>(&mut service.id, id, ReviewRecord{owner, overall_rate});
+        dynamic_field::add<ID, ReviewRecord>(&mut service.id, id, ReviewRecord { owner, overall_rate });
         let overall_rate = (overall_rate as u64);
         service.overall_rate = service.overall_rate + overall_rate;
     }
@@ -204,23 +226,23 @@ module poc::service {
 
     /// Removes a review (only moderators can do this)
     public fun remove_review(
-        mod: Moderator,
+        mod: &Moderator,
         service: &mut Service,
         review_id: ID,
-        ctx: &TxContext
+        ctx: &mut TxContext
     ) {
         assert!(mod.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
-        if (!vec_set::contains<address>(&service.moderators, &tx_context::sender(ctx))) {
-            // remove moderator NFT
-            let Moderator {id, service_id: _} = mod;
-            object::delete(id);
-            return
-        };
+        assert!(vec_set::contains<address>(&service.moderators, &tx_context::sender(ctx)), EInvalidPermission);
         assert!(multimap::contains<ID>(&service.reviews, &review_id), ENotExists);
         multimap::remove<ID>(&mut service.reviews, &review_id);
-        let record = dynamic_field::borrow<ID, ReviewRecord>(&service.id, review_id);
+        let record = dynamic_field::remove<ID, ReviewRecord>(&mut service.id, review_id);
         service.overall_rate = service.overall_rate - (record.overall_rate as u64);
-        transfer::transfer(mod, tx_context::sender(ctx));
+
+        let delisted = Delisted {
+            id: object::new(ctx),
+            review_id
+        };
+        transfer::transfer(delisted, record.owner);
     }
 
     /// Removes and inserts back a review to update its ranking
@@ -235,4 +257,16 @@ module poc::service {
         multimap::insert<ID>(&mut service.reviews, id, ts);
     }
 
+    /// Deletes a unlisted review and collect storage rebates
+    public fun delete_review(
+        service: &Service,
+        rev: Review,
+        delisted: Delisted
+    ) {
+        assert!(delisted.review_id == review::get_id(&rev), EInvalidPermission);
+        assert!(!multimap::contains<ID>(&service.reviews, &review::get_id(&rev)), ENotDelisted);
+        review::delete_review(rev);
+        let Delisted { id, review_id: _ } = delisted;
+        object::delete(id);
+    }
 }

@@ -1,13 +1,8 @@
-import { useWalletKit } from "@mysten/wallet-kit";
-import { toast } from "react-hot-toast";
 import { useState } from "react";
-import { useSui } from "./useSui";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { useSignAndExecuteTransaction } from "./useSignAndExecuteTransaction";
 
 export const useReviewVoting = () => {
-  const { executeSignedTransactionBlock } = useSui();
-  const { signTransactionBlock } = useWalletKit();
   const [isLoading, setIsLoading] = useState(false);
   const { handleSignAndExecuteTransaction } = useSignAndExecuteTransaction();
 
@@ -36,8 +31,6 @@ export const useReviewVoting = () => {
     });
     return handleSignAndExecuteTransaction(tx, "Upvote", setIsLoading);
   };
-
-
 
   return { handleUpvote, handleDownvote };
 };

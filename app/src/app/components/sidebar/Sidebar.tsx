@@ -7,6 +7,7 @@ import {
   HiChartPie,
   HiCurrencyDollar,
   HiStar,
+  HiTrash,
   HiUser,
 } from "react-icons/hi";
 import { useAuthentication } from "@/app/hooks/useAuthentication";
@@ -72,6 +73,9 @@ export const MySidebar = () => {
                 </Sidebar.Item>
                 <Sidebar.Item href="/user/moderator" icon={HiStar}>
                   Moderator For
+                </Sidebar.Item>
+                <Sidebar.Item href="/user/delisted" icon={HiTrash}>
+                  Delisted Reviews
                 </Sidebar.Item>
               </Sidebar.ItemGroup>
             )}
