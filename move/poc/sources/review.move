@@ -21,16 +21,15 @@ module poc::review {
         owner: address,
         service_id: ID,
         content: String,
-        // is
+        // intrinsic score
         len: u64,
-        // es
+        // extrinsic score
         votes: u64,
-        // dr
         time_issued: u64,
-        // vm: proof of experience
+        // proof of experience
         has_poe: bool,
         // total score
-        ts: u64,
+        total_score: u64,
         // overall rating value; max=5
         overall_rate: u8,
     }
@@ -56,23 +55,23 @@ module poc::review {
             votes: 10, // start with 10, can go down to 0
             time_issued: clock::timestamp_ms(clock),
             has_poe,
-            ts: 0,
+            total_score: 0,
             overall_rate,
         };
-        new_review.ts = calculate_total_score(&new_review);
+        new_review.total_score = calculate_total_score(&new_review);
 
         let id = object::uid_to_inner(&new_review.id);
-        let ts = new_review.ts;
+        let total_score = new_review.total_score;
         let time_issued = new_review.time_issued;
         transfer::share_object(new_review);
-        (id, ts, time_issued)
+        (id, total_score, time_issued)
     }
 
     /// Deletes a review
     public(friend) fun delete_review(rev: Review) {
         let Review {
             id, owner: _, service_id: _, content: _, len: _, votes: _, time_issued: _,
-            has_poe: _, ts: _, overall_rate: _
+            has_poe: _, total_score: _, overall_rate: _
         } = rev;
         object::delete(id);
     }
@@ -81,14 +80,14 @@ module poc::review {
     fun calculate_total_score(rev: &Review): u64 {
         // compute total score 
         // Result is in 2 decimals points in precision; 100 is actually 1
-        // TS = (IS + ES) * VM
+        // TOTALSCORE = (IS + ES) * VM
 
-        // IS = len / 100; max = 1.5
-        let is: u64 = rev.len;
-        is = math::min(is, 150);
+        // intrinsic_score = len / 100; max = 1.5
+        let intrinsic_score: u64 = rev.len;
+        intrinsic_score = math::min(intrinsic_score, 150);
 
-        // ES = # of upvotes; 1 + (0.1 * per upvotes)
-        let es: u64 = 10 * rev.votes;
+        // extrinsic_score = # of upvotes; 1 + (0.1 * per upvotes)
+        let extrinsic_score: u64 = 10 * rev.votes;
 
         // VM = either 1.0 or 2.0 (if user has proof of experience)
         let vm: u64 = 1;
@@ -96,12 +95,12 @@ module poc::review {
             vm = 2;
         };
 
-        (is + es) * vm
+        (intrinsic_score + extrinsic_score) * vm
     }
 
     /// Updates the total score of a review
     public fun update_total_score(rev: &mut Review) {
-        rev.ts = calculate_total_score(rev);
+        rev.total_score = calculate_total_score(rev);
     }
 
     /// Upvotes a review
@@ -122,6 +121,6 @@ module poc::review {
     }
 
     public fun get_total_score(rev: &Review): u64 {
-        rev.ts
+        rev.total_score
     }
 }

@@ -7,5 +7,5 @@ export interface Review {
     votes: number;
     time_issued: number;
     has_poe: boolean;
-    ts: number;
+    total_score: number;
 }

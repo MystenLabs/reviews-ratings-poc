@@ -107,7 +107,7 @@ module poc::service {
         assert!(multimap::size<ID>(&service.reviews) < MAX_REVIEWS, EMaxReviews);
         let ProofOfExperience { id, service_id: _ } = poe;
         object::delete(id);
-        let (id, ts, time_issued) = review::new_review(
+        let (id, total_score, time_issued) = review::new_review(
             owner,
             object::uid_to_inner(&service.id),
             content,
@@ -116,7 +116,7 @@ module poc::service {
             clock,
             ctx
         );
-        multimap::insert<ID>(&mut service.reviews, id, ts);
+        multimap::insert<ID>(&mut service.reviews, id, total_score);
         dynamic_field::add<ID, ReviewRecord>(&mut service.id, id, ReviewRecord { owner, overall_rate, time_issued });
         let overall_rate = (overall_rate as u64);
         service.overall_rate = service.overall_rate + overall_rate;
@@ -132,7 +132,7 @@ module poc::service {
         ctx: &mut TxContext
     ) {
         assert!(multimap::size<ID>(&service.reviews) < MAX_REVIEWS, EMaxReviews);
-        let (id, ts, time_issued) = review::new_review(
+        let (id, total_score, time_issued) = review::new_review(
             owner,
             object::uid_to_inner(&service.id),
             content,
@@ -141,7 +141,7 @@ module poc::service {
             clock,
             ctx
         );
-        multimap::insert<ID>(&mut service.reviews, id, ts);
+        multimap::insert<ID>(&mut service.reviews, id, total_score);
         dynamic_field::add<ID, ReviewRecord>(&mut service.id, id, ReviewRecord { owner, overall_rate, time_issued });
         let overall_rate = (overall_rate as u64);
         service.overall_rate = service.overall_rate + overall_rate;
@@ -282,9 +282,9 @@ module poc::service {
     ) {
         // remove existing review from multimap and insert back
         let id = review::get_id(rev);
-        let ts = review::get_total_score(rev);
+        let total_score = review::get_total_score(rev);
         multimap::remove<ID>(&mut service.reviews, &id);
-        multimap::insert<ID>(&mut service.reviews, id, ts);
+        multimap::insert<ID>(&mut service.reviews, id, total_score);
     }
 
     /// Deletes a unlisted review and collect storage rebates
