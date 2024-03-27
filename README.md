@@ -40,10 +40,9 @@ Follow these steps to set up and interact locally:
 4. Deploy the contract and setup the environment with `./publish testnet | devnet`.
 
 ### App Setup
-1. Move to the `api/` directory and run `npm install`.
-2. Start the server locally with `npm run dev`. It will run at `localhost:8080`.
-3. Open `api/.env` and add `NEXT_PUBLIC_DASHBOARD_ID=deployed_dashboard_id`.
-4. You can follow the api/README.md file for more information.
+1. Move to the `app/` directory and run `npm install`.
+2. Open `api/.env` and add `NEXT_PUBLIC_DASHBOARD_ID=deployed_dashboard_id`.
+3. Make sure correct values are set in `app/.env` for `NEXT_PUBLIC_PACKAGE` and `NEXT_PUBLIC_SUI_NETWORK`.
 
 The `publish` script deploys the contract and initializes the environment. For more details, refer to the `publish` README.
 
