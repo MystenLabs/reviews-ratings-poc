@@ -50,7 +50,7 @@ The `publish` script deploys the contract and initializes the environment. For m
 ### UI Interaction
 1. Navigate to the `app/` directory.
 2. Run `npm install`, followed by `npm run dev` for local testing.
-3. Access the UI at `localhost:3000` and enjoy the Plinko game.
+3. Access the UI at `localhost:3000`.
 4. You can follow the app/README.md file for more information.
 
 ## Sequencial diagram
