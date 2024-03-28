@@ -1,7 +1,6 @@
 import { useWalletKit } from "@mysten/wallet-kit";
 import { useEffect, useState } from "react";
 import { useSui } from "./useSui";
-import { SuiMoveObject } from "@mysten/sui.js";
 
 export const useGetServices = (dashboardId: string) => {
   const { currentAccount } = useWalletKit();
@@ -27,15 +26,14 @@ export const useGetServices = (dashboardId: string) => {
     console.log(`fetching obj_id=${dashboardId}`);
     console.log("calling Get Services");
     suiClient
-      .getObject({
-        id: dashboardId,
-        options: {
-          showContent: true,
-        },
+      .getDynamicFields({
+        parentId: dashboardId,
+        cursor: null,
+        limit: 100,
       })
       .then((res) => {
         console.log(`res: ${JSON.stringify(res.data)}`);
-        setServiceList((res.data?.content as SuiMoveObject).fields.set.fields.contents);
+        setServiceList(res.data.map((item) => item.name.value as string));
         setIsLoading(false);
         setIsError(false);
       })

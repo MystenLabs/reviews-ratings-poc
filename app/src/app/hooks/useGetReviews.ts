@@ -39,11 +39,10 @@ export const useGetReviews = (serviceId: string) => {
       .then((res) => {
         console.log(res);
         setDataReviews(
-          (res.data?.content as SuiMoveObject).fields.reviews.fields.contents,
+          (res.data?.content as SuiMoveObject).fields.top_reviews.fields.contents,
         );
         setDataName((res.data?.content as SuiMoveObject).fields.name);
-        const len = (res.data?.content as SuiMoveObject).fields.reviews.fields
-          .contents.length;
+        const len = (res.data?.content as SuiMoveObject).fields.reviews.fields.size;
         if (len > 0) {
           setDataStars(
             (res.data?.content as SuiMoveObject).fields.overall_rate / len,

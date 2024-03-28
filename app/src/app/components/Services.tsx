@@ -35,7 +35,7 @@ export const Services = () => {
       const serviceName = (obj.data?.content as SuiMoveObject).fields.name;
       let stars = 0;
       const len = (obj.data?.content as SuiMoveObject).fields.reviews.fields
-        .contents.length;
+        .size;
       if (len > 0) {
         stars = (obj.data?.content as SuiMoveObject).fields.overall_rate / len;
       }
@@ -72,8 +72,7 @@ export const Services = () => {
                   </div>
                 </Table.Cell>
                 <Table.Cell>
-                  <div className="w-32">
-                    {item.name}</div>
+                  <div className="w-32">{item.name}</div>
                 </Table.Cell>
                 <Table.Cell>
                   <div className="overflow-hidden truncate w-24">{item.id}</div>
