@@ -4,7 +4,7 @@ module poc::service {
     use sui::balance::{Self, Balance};
     use sui::clock::Clock;
     use sui::coin::{Self, Coin};
-    use sui::dynamic_field;
+    use sui::dynamic_field as df;
     use sui::object::{Self, ID, UID};
     use sui::sui::SUI;
     use sui::transfer;
@@ -117,7 +117,7 @@ module poc::service {
             ctx
         );
         multimap::insert<ID>(&mut service.reviews, id, total_score);
-        dynamic_field::add<ID, ReviewRecord>(&mut service.id, id, ReviewRecord { owner, overall_rate, time_issued });
+        df::add<ID, ReviewRecord>(&mut service.id, id, ReviewRecord { owner, overall_rate, time_issued });
         let overall_rate = (overall_rate as u64);
         service.overall_rate = service.overall_rate + overall_rate;
     }
@@ -142,7 +142,7 @@ module poc::service {
             ctx
         );
         multimap::insert<ID>(&mut service.reviews, id, total_score);
-        dynamic_field::add<ID, ReviewRecord>(&mut service.id, id, ReviewRecord { owner, overall_rate, time_issued });
+        df::add<ID, ReviewRecord>(&mut service.id, id, ReviewRecord { owner, overall_rate, time_issued });
         let overall_rate = (overall_rate as u64);
         service.overall_rate = service.overall_rate + overall_rate;
     }
@@ -166,7 +166,7 @@ module poc::service {
             let sub_balance = balance::split(&mut service.reward_pool, service.reward);
             let reward = coin::from_balance(sub_balance, ctx);
             let (review_id, _) = multimap::get_entry_by_idx<ID>(&service.reviews, i);
-            let record = dynamic_field::borrow<ID, ReviewRecord>(&service.id, *review_id);
+            let record = df::borrow<ID, ReviewRecord>(&service.id, *review_id);
             transfer::public_transfer(reward, record.owner);
             i = i + 1;
         };
@@ -251,7 +251,7 @@ module poc::service {
         let review_len = multimap::size<ID>(&service.reviews);
         while (i < review_len) {
             let (review_id, _) = multimap::get_entry_by_idx<ID>(&service.reviews, i);
-            let record = dynamic_field::borrow<ID, ReviewRecord>(&service.id, *review_id);
+            let record = df::borrow<ID, ReviewRecord>(&service.id, *review_id);
             if (record.time_issued < threshold_time) {
                 delist_review(service, *review_id, ctx);
             };
@@ -266,7 +266,7 @@ module poc::service {
         ctx: &mut TxContext
     ) {
         multimap::remove<ID>(&mut service.reviews, &review_id);
-        let record = dynamic_field::remove<ID, ReviewRecord>(&mut service.id, review_id);
+        let record = df::remove<ID, ReviewRecord>(&mut service.id, review_id);
         service.overall_rate = service.overall_rate - (record.overall_rate as u64);
         let delisted = Delisted {
             id: object::new(ctx),

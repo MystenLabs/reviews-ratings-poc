@@ -4,12 +4,11 @@ module poc::dashboard {
     use sui::object::{Self, ID, UID};
     use sui::transfer;
     use sui::tx_context::TxContext;
-    use sui::vec_set::{Self, VecSet};
+    use sui::dynamic_field as df;
 
     /// Dashboard is a collection of services
     struct Dashboard has key, store {
         id: UID,
-        set: VecSet<ID>,
         service_type: String
     }
 
@@ -20,13 +19,12 @@ module poc::dashboard {
     ) {
         let db = Dashboard {
             id: object::new(ctx),
-            set: vec_set::empty(),
             service_type
         };
         transfer::share_object(db);
     }
 
     public fun register_service(db: &mut Dashboard, service_id: ID) {
-        vec_set::insert<ID>(&mut db.set, service_id);
+        df::add(&mut db.id, service_id, service_id);
     }
 }
