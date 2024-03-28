@@ -7,9 +7,9 @@ module poc::service {
     use sui::dynamic_field as df;
     use sui::object::{Self, ID, UID};
     use sui::sui::SUI;
+    use sui::table::{Self, Table};
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
-    use sui::vec_set::{Self, VecSet};
 
     use poc::multimap::{Self, MultiMap};
     use poc::review::{Self, Review};
@@ -36,7 +36,7 @@ module poc::service {
         reward_pool: Balance<SUI>,
         reward: u64,
         reviews: MultiMap<ID>,
-        moderators: VecSet<address>,
+        moderators: Table<address, address>,
         overall_rate: u64,
         name: String
     }
@@ -78,7 +78,7 @@ module poc::service {
             reward: 1000000,
             reward_pool: balance::zero(),
             reviews: multimap::empty<ID>(),
-            moderators: vec_set::empty<address>(),
+            moderators: table::new<address, address>(ctx),
             overall_rate: 0,
             name
         };
@@ -205,8 +205,8 @@ module poc::service {
     ) {
         // generate an NFT and transfer it to moderator who may use it to delete reviews
         assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
-        assert!(!vec_set::contains<address>(&service.moderators, &recipient), EAlreadyExists);
-        vec_set::insert<address>(&mut service.moderators, recipient);
+        assert!(!table::contains<address, address>(&service.moderators, recipient), EAlreadyExists);
+        table::add<address, address>(&mut service.moderators, recipient, recipient);
         let mod = Moderator {
             id: object::new(ctx),
             service_id: cap.service_id
@@ -221,8 +221,8 @@ module poc::service {
         addr: address
     ) {
         assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
-        assert!(vec_set::contains<address>(&service.moderators, &addr), ENotExists);
-        vec_set::remove<address>(&mut service.moderators, &addr);
+        assert!(table::contains<address, address>(&service.moderators, addr), ENotExists);
+        table::remove<address, address>(&mut service.moderators, addr);
     }
 
     /// Removes a review (only moderators can do this)
@@ -233,7 +233,7 @@ module poc::service {
         ctx: &mut TxContext
     ) {
         assert!(mod.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
-        assert!(vec_set::contains<address>(&service.moderators, &tx_context::sender(ctx)), EInvalidPermission);
+        assert!(table::contains<address, address>(&service.moderators, tx_context::sender(ctx)), EInvalidPermission);
         assert!(multimap::contains<ID>(&service.reviews, &review_id), ENotExists);
         delist_review(service, review_id, ctx);
     }
@@ -246,7 +246,7 @@ module poc::service {
         ctx: &mut TxContext
     ) {
         assert!(mod.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
-        assert!(vec_set::contains<address>(&service.moderators, &tx_context::sender(ctx)), EInvalidPermission);
+        assert!(table::contains<address, address>(&service.moderators, tx_context::sender(ctx)), EInvalidPermission);
         let i = 0;
         let review_len = multimap::size<ID>(&service.reviews);
         while (i < review_len) {
