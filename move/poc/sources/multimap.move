@@ -41,27 +41,17 @@ module poc::multimap {
         if (len == 0) {
             vector::push_back(&mut self.contents, Entry { key, priority });
         } else {
-            insert_recursive(&mut self.contents, Entry { key, priority }, 0, len - 1);
-        }
-    }
-
-    fun insert_recursive<K: copy>(v: &mut vector<Entry<K>>, e: Entry<K>, left: u64, right: u64) {
-        if (left > right) {
-            vector::insert(v, e, left);
-        } else {
-            let mid = (left + right) / 2;
-            let ele = vector::borrow(v, mid);
-            if (e.priority == ele.priority) {
-                vector::insert(v, e, mid);
-            } else if (e.priority > ele.priority) {
-                if (mid == 0) {
-                    vector::insert(v, e, left);
+            let (lo, hi) = (0, len);
+            while (lo < hi) {
+                let mid = (hi - lo) / 2 + lo;
+                let ele = vector::borrow(&self.contents, mid);
+                if (priority > ele.priority) {
+                    hi = mid;
                 } else {
-                    insert_recursive(v, e, left, mid - 1);
+                    lo = mid + 1;
                 }
-            } else {
-                insert_recursive(v, e, mid + 1, right);
-            }
+            };
+            vector::insert(&mut self.contents, Entry { key, priority }, lo);
         }
     }
 
@@ -175,7 +165,7 @@ module poc::multimap {
 
         insert(&mut h, 10, 10);
         check_max(&h, 10);
-        
+
         insert(&mut h, 20, 20);
         check_max(&h, 20);
 
@@ -228,5 +218,4 @@ module poc::multimap {
         let (_key, priority) = get_entry_by_idx(h, 0);
         assert!(priority == &expected_priority, 0);
     }
-
 }
