@@ -101,16 +101,10 @@ export default function Service() {
 
   return (
       <div className="flex flex-col mx-32 my-10">
-        <h1>Service</h1>
+        <h1>Top Reviews</h1>
         <div>Name: {`${dataName}`}</div>
         <div>Id: {`${id}`}</div>
-        <div>Reviews: {`${reviews.length}`}</div>
-        <div className="flex flex-row">
-          Rating: <RatingStar stars={dataStars}></RatingStar>
-        </div>
-        <p className="my-4 text-lg text-gray-500">
-          Top Reviews
-        </p>
+        <div>Total: {`${reviews.length}`}</div>
         <div className="container">
           {reviews.length > 0 && (
               <Table hoverable className="items-center text-center">

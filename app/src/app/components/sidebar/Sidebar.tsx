@@ -5,6 +5,7 @@ import {
   HiArrowSmLeft,
   HiCake,
   HiChartPie,
+  HiChartSquareBar,
   HiCurrencyDollar,
   HiStar,
   HiTrash,
@@ -67,6 +68,9 @@ export const MySidebar = () => {
               <Sidebar.ItemGroup>
                 <Sidebar.Item href="/user" icon={HiChartPie}>
                   Services
+                </Sidebar.Item>
+                <Sidebar.Item href="/user/reviews" icon={HiChartSquareBar}>
+                  Reviews
                 </Sidebar.Item>
                 <Sidebar.Item href="/user/ownedPoes" icon={HiRocketLaunch}>
                   Recently Visited

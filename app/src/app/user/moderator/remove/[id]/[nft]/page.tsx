@@ -1,38 +1,24 @@
 "use client";
 import { useParams } from "next/navigation";
-import { useGetReviews } from "@/app/hooks/useGetReviews";
+import { useGetAllReviews } from "@/app/hooks/useGetAllReviews";
 import { useServiceModerator } from "@/app/hooks/useServiceModerator";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { Button, Label, Modal, Table, TextInput } from "flowbite-react";
 import { HiOutlineArrowRight, HiXCircle } from "react-icons/hi";
 
-interface ReviewType {
-  id: string;
-  priority: string;
-}
-
-interface ReviewItem {
-  type: string;
-  fields: {
-    key: string;
-    priority: string;
-  };
-}
-
 export default function Reviews() {
   const router = useRouter();
   const { id, nft } = useParams();
   const { dataReviews, dataName, dataStars, isLoading, currentAccount } =
-    useGetReviews(id);
+    useGetAllReviews(id);
   const { handleRemoveReview } = useServiceModerator();
 
-  const [reviews, setReviews] = useState([] as ReviewType[]);
   const [reviewId, setReviewId] = useState("");
   const [openModal, setOpenModal] = useState(false);
 
-  const onDisplayReview = (review: ReviewType) => {
-    router.push(`/review/${review.id}`);
+  const onDisplayReview = (review_id: string) => {
+    router.push(`/review/${review_id}`);
   };
 
   const onDelete = async () => {
@@ -48,16 +34,6 @@ export default function Reviews() {
       console.dir(
         `reviews: ${JSON.stringify(dataReviews)} size=${dataReviews.length}`,
       );
-
-      const reviewsPromises = dataReviews.map(async (item: ReviewItem) => {
-        console.log(`review: ${JSON.stringify(item)}`);
-        console.log(` key > : ${item.fields.key}`);
-        console.log(` priority > : ${item.fields.priority}`);
-        //const review = { name: serviceName, priority: };
-        return { id: item.fields.key, priority: item.fields.priority };
-      });
-      setReviews(await Promise.all(reviewsPromises));
-      console.dir(`reviews_post: ${JSON.stringify(reviews)}`);
     }
 
     getReviews();
@@ -68,25 +44,23 @@ export default function Reviews() {
       <h1>Service</h1>
       <div>Name: {`${dataName}`}</div>
       <div>Id: {`${id}`}</div>
-      <div>Reviews: {`${reviews.length}`}</div>
+      <div>Reviews: {`${dataReviews.length}`}</div>
       <div className="container">
-        {reviews.length > 0 && (
+        {dataReviews.length > 0 && (
           <Table hoverable className="items-center text-center">
             <Table.Head>
               <Table.HeadCell>Review ID</Table.HeadCell>
-              <Table.HeadCell>Score</Table.HeadCell>
               <Table.HeadCell>Action</Table.HeadCell>
             </Table.Head>
             <Table.Body className="divide-y">
-              {reviews.map((item) => (
+              {dataReviews.map((item) => (
                 <Table.Row
                   className="bg-white dark:border-gray-700 dark:bg-gray-800"
-                  key={item.id}
+                  key={item}
                 >
                   <Table.Cell>
-                    <div className="overflow-hidden">{item.id}</div>
+                    <div className="overflow-hidden">{item}</div>
                   </Table.Cell>
-                  <Table.Cell>{item.priority}</Table.Cell>
                   <Table.Cell>
                     <div className="flex flex-row space-x-2">
                       <Button
@@ -101,7 +75,7 @@ export default function Reviews() {
                         color="red"
                         pill
                         onClick={() => {
-                          setReviewId(item.id);
+                          setReviewId(item);
                           setOpenModal(true);
                         }}
                       >

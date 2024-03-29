@@ -8,7 +8,11 @@ import { Button, Table } from "flowbite-react";
 import { HiOutlineArrowRight } from "react-icons/hi";
 import { RatingStar } from "@/app/components/review/RatingStar";
 
-export const Services = () => {
+interface Props {
+  isDetailed?: boolean | false;
+}
+
+export const Services = ({ isDetailed }: Props) => {
   const { suiClient } = useSui();
   const router = useRouter();
   const { serviceList, isLoading, currentAccount } = useGetServices(
@@ -19,6 +23,10 @@ export const Services = () => {
 
   const onDisplayService = (service: ServiceType) => {
     router.push(`/service/${service.id}`);
+  };
+
+  const onDisplayDetailedService = (service: ServiceType) => {
+    router.push(`/serviceDetailed/${service.id}`);
   };
 
   useEffect(() => {
@@ -82,7 +90,11 @@ export const Services = () => {
                     <Button
                       color="gray"
                       pill
-                      onClick={() => onDisplayService(item)}
+                      onClick={() =>
+                        isDetailed
+                          ? onDisplayDetailedService(item)
+                          : onDisplayService(item)
+                      }
                     >
                       Info
                       <HiOutlineArrowRight className="ml-2 h-5 w-5" />
