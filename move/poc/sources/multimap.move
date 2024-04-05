@@ -38,21 +38,17 @@ module poc::multimap {
     public fun insert<K: copy>(self: &mut MultiMap<K>, key: K, priority: u64) {
         assert!(!contains(self, &key), EKeyAlreadyExists);
         let len = vector::length(&self.contents);
-        if (len == 0) {
-            vector::push_back(&mut self.contents, Entry { key, priority });
-        } else {
-            let (lo, hi) = (0, len);
-            while (lo < hi) {
-                let mid = (hi - lo) / 2 + lo;
-                let ele = vector::borrow(&self.contents, mid);
-                if (priority > ele.priority) {
-                    hi = mid;
-                } else {
-                    lo = mid + 1;
-                }
-            };
-            vector::insert(&mut self.contents, Entry { key, priority }, lo);
-        }
+        let (lo, hi) = (0, len);
+        while (lo < hi) {
+            let mid = (hi - lo) / 2 + lo;
+            let ele = vector::borrow(&self.contents, mid);
+            if (priority > ele.priority) {
+                hi = mid;
+            } else {
+                lo = mid + 1;
+            }
+        };
+        vector::insert(&mut self.contents, Entry { key, priority }, lo);
     }
 
     /// Remove the entry `key` |-> `value` from self. Aborts if `key` is not bound in `self`.
