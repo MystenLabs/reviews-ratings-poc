@@ -296,19 +296,20 @@ module poc::service {
         transfer::transfer(delisted, record.owner);
     }
 
-    /// Removes and inserts back a review to update its ranking
+    /// Reorder top_reviews after a review is updated
     public fun reorder(
         service: &mut Service,
         rev: &Review
     ) {
         let id = review::get_id(rev);
-        if (!multimap::contains<ID>(&service.top_reviews, &id)) {
-            return
-        };
-        // remove existing review from multimap and insert back
         let total_score = review::get_total_score(rev);
-        multimap::remove<ID>(&mut service.top_reviews, &id);
-        multimap::insert<ID>(&mut service.top_reviews, id, total_score);
+        if (!multimap::contains<ID>(&service.top_reviews, &id)) {
+            update_top_reviews(service, id, total_score);
+        } else {
+            // remove existing review from multimap and insert back
+            multimap::remove<ID>(&mut service.top_reviews, &id);
+            multimap::insert<ID>(&mut service.top_reviews, id, total_score);
+        }
     }
 
     /// Deletes a unlisted review and collect storage rebates
