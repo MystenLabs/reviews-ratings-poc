@@ -4,7 +4,6 @@ module poc::review {
     use sui::clock::{Self, Clock};
     use sui::math;
     use sui::object::{Self, ID, UID};
-    use sui::transfer;
     use sui::tx_context::TxContext;
 
     friend poc::service;

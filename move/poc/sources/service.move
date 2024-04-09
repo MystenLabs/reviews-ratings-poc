@@ -12,6 +12,7 @@ module poc::service {
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
 
+    use poc::moderator::{Moderator};
     use poc::review::{Self, Review};
 
     const EInvalidPermission: u64 = 1;
@@ -49,12 +50,6 @@ module poc::service {
     struct Delisted has key {
         id: UID,
         review_id: ID,
-    }
-
-    /// Represents a moderator that can be used to delete reviews
-    struct Moderator has key {
-        id: UID,
-        service_id: ID,
     }
 
     /// Represents a review record
@@ -265,66 +260,21 @@ module poc::service {
         transfer::transfer(poe, recipient);
     }
 
-    /// Adds a moderator
-    public fun add_moderator(
-        cap: &AdminCap,
-        service: &mut Service,
-        recipient: address,
-        ctx: &mut TxContext
-    ) {
-        // generate an NFT and transfer it to moderator who may use it to delete reviews
-        // assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
-        // assert!(!table::contains<address, address>(&service.moderators, recipient), EAlreadyExists);
-        // table::add<address, address>(&mut service.moderators, recipient, recipient);
-        // let mod = Moderator {
-        //     id: object::new(ctx),
-        //     service_id: cap.service_id
-        // };
-        // transfer::transfer(mod, recipient);
-    }
-
-    /// Removes a moderator
-    public fun remove_moderator(
-        cap: &AdminCap,
-        service: &mut Service,
-        addr: address
-    ) {
-        // assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
-        // assert!(table::contains<address, address>(&service.moderators, addr), ENotExists);
-        // table::remove<address, address>(&mut service.moderators, addr);
-    }
-
     /// Removes a review (only moderators can do this)
     public fun remove_review(
-        mod: &Moderator,
+        _: &Moderator,
         service: &mut Service,
         review_id: ID,
-        ctx: &mut TxContext
     ) {
-        // assert!(mod.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
-        // assert!(table::contains<address, address>(&service.moderators, tx_context::sender(ctx)), EInvalidPermission);
-        // assert!(table::contains<ID, ID>(&service.reviews, review_id), ENotExists);
-        // delist_review(service, review_id, ctx);
-    }
-
-    /// Delists a review from ranking
-    fun delist_review(
-        service: &mut Service,
-        review_id: ID,
-        ctx: &mut TxContext
-    ) {
-        // object_table::remove(&mut service.reviews, review_id);
-        // let record = df::remove<ID, ReviewRecord>(&mut service.id, review_id);
-        // service.overall_rate = service.overall_rate - (record.overall_rate as u64);
-        // let delisted = Delisted {
-        //     id: object::new(ctx),
-        //     review_id
-        // };
-        // let (contains, i) = vector::index_of(&service.top_reviews, &review_id);
-        // if (contains) {
-        //     vector::remove(&mut service.top_reviews, i);
-        // };
-        // transfer::transfer(delisted, record.owner);
+        assert!(object_table::contains(&service.reviews, review_id), ENotExists);
+        let record = df::remove<ID, ReviewRecord>(&mut service.id, review_id);
+        service.overall_rate = service.overall_rate - (record.overall_rate as u64);
+        let (contains, i) = vector::index_of(&service.top_reviews, &review_id);
+        if (contains) {
+            vector::remove(&mut service.top_reviews, i);
+        };
+        let review = object_table::remove(&mut service.reviews, review_id);
+        review::delete_review(review);
     }
 
     /// Reorder top_reviews after a review is updated
@@ -345,19 +295,6 @@ module poc::service {
             vector::insert(&mut service.top_reviews, review_id, idx);
         }
     }
-
-    /// Deletes a unlisted review and collect storage rebates
-    // public fun delete_review(
-    //     service: &Service,
-    //     rev: Review,
-    //     delisted: Delisted
-    // ) {
-    //     assert!(delisted.review_id == review::get_id(&rev), EInvalidPermission);
-    //     assert!(!object_table::contains(&service.reviews, review::get_id(&rev)), ENotDelisted);
-    //     review::delete_review(rev);
-    //     let Delisted { id, review_id: _ } = delisted;
-    //     object::delete(id);
-    // }
 
     /// Upvotes a review
     public fun upvote(service: &mut Service, review_id: ID) {
