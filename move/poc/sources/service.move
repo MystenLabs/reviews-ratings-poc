@@ -187,15 +187,27 @@ module poc::service {
         total_score: u64
     ) {
         if (should_update_top_reviews(service, total_score)) {
-            let i = 0;
-            let len = vector::length(&service.top_reviews);
-            let i_id = *vector::borrow(&service.top_reviews, i);
-            while (get_total_score(service, i_id) < total_score && i < len - 1) {
-                i = i + 1;
-            };
-            vector::insert(&mut service.top_reviews, review_id, i);
+            let idx = find_idx(service, total_score);
+            vector::insert(&mut service.top_reviews, review_id, idx);
             prune_top_reviews(service);
         };
+    }
+
+    /// Finds the index of a review in top_reviews
+    fun find_idx(service: &mut Service, total_score: u64): u64 {
+        let idx = 0;
+        let len = vector::length(&service.top_reviews);
+        if (len > 0) {
+            let review_id = *vector::borrow(&service.top_reviews, idx);
+            while (get_total_score(service, review_id) > total_score && idx < len - 1) {
+                idx = idx + 1;
+                review_id = *vector::borrow(&service.top_reviews, idx);
+            };
+            if (idx == len - 1) {
+                idx = len;
+            }
+        };
+        idx
     }
 
     /// Gets the total score of a review
@@ -318,23 +330,19 @@ module poc::service {
     /// Reorder top_reviews after a review is updated
     public fun reorder(
         service: &mut Service,
-        rev: &Review
+        review_id: ID
     ) {
-        let review_id = review::get_id(rev);
-        let total_score = review::get_total_score(rev);
-        let (contains, i) = vector::index_of(&service.top_reviews, &review_id);
+        let review = object_table::borrow_mut(&mut service.reviews, review_id);
+        let review_id = review::get_id(review);
+        let total_score = review::get_total_score(review);
+        let (contains, idx) = vector::index_of(&service.top_reviews, &review_id);
         if (!contains) {
             update_top_reviews(service, review_id, total_score);
         } else {
             // remove existing review from vector and insert back
-            vector::remove(&mut service.top_reviews, i);
-            let i = 0;
-            let len = vector::length(&service.top_reviews);
-            let i_id = *vector::borrow(&service.top_reviews, i);
-            while (get_total_score(service, i_id) < total_score && i < len - 1) {
-                i = i + 1;
-            };
-            vector::insert(&mut service.top_reviews, review_id, i);
+            vector::remove(&mut service.top_reviews, idx);
+            let idx = find_idx(service, total_score);
+            vector::insert(&mut service.top_reviews, review_id, idx);
         }
     }
 
@@ -350,4 +358,16 @@ module poc::service {
     //     let Delisted { id, review_id: _ } = delisted;
     //     object::delete(id);
     // }
+
+    /// Upvotes a review
+    public fun upvote(service: &mut Service, review_id: ID) {
+        let review = object_table::borrow_mut(&mut service.reviews, review_id);
+        review::upvote(review);
+    }
+
+    /// Downvotes a review
+    public fun downvote(service: &mut Service, review_id: ID) {
+        let review = object_table::borrow_mut(&mut service.reviews, review_id);
+        review::downvote(review);
+    }
 }

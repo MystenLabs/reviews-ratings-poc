@@ -5,10 +5,7 @@ import { useGetReview } from "@/app/hooks/useGetReview";
 import { useReviewVoting } from "@/app/hooks/useReviewVoting";
 import React from "react";
 import { Button } from "flowbite-react";
-import {
-  HiThumbDown,
-  HiThumbUp,
-} from "react-icons/hi";
+import { HiThumbDown, HiThumbUp } from "react-icons/hi";
 
 export default function Service() {
   const { id } = useParams();
@@ -125,6 +122,7 @@ export default function Service() {
             <textarea
               className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               rows={7}
+              readOnly={true}
               value={`${dataReview?.content}`}
             ></textarea>
           }

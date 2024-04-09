@@ -9,12 +9,12 @@ export const useReviewVoting = () => {
   const handleUpvote = async (serviceId: string, reviewId: string) => {
     const tx = new TransactionBlock();
     tx.moveCall({
-      target: `${process.env.NEXT_PUBLIC_PACKAGE}::review::upvote`,
-      arguments: [tx.object(reviewId)],
+      target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::upvote`,
+      arguments: [tx.object(serviceId), tx.pure(reviewId)],
     });
     tx.moveCall({
       target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::reorder`,
-      arguments: [tx.object(serviceId), tx.object(reviewId)],
+      arguments: [tx.object(serviceId), tx.pure(reviewId)],
     });
     return handleSignAndExecuteTransaction(tx, "Upvote", setIsLoading);
   };
@@ -22,14 +22,14 @@ export const useReviewVoting = () => {
   const handleDownvote = async (serviceId: string, reviewId: string) => {
     const tx = new TransactionBlock();
     tx.moveCall({
-      target: `${process.env.NEXT_PUBLIC_PACKAGE}::review::downvote`,
-      arguments: [tx.object(reviewId)],
+      target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::downvote`,
+      arguments: [tx.object(serviceId), tx.pure(reviewId)],
     });
     tx.moveCall({
       target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::reorder`,
-      arguments: [tx.object(serviceId), tx.object(reviewId)],
+      arguments: [tx.object(serviceId), tx.pure(reviewId)],
     });
-    return handleSignAndExecuteTransaction(tx, "Upvote", setIsLoading);
+    return handleSignAndExecuteTransaction(tx, "Downvote", setIsLoading);
   };
 
   return { handleUpvote, handleDownvote };

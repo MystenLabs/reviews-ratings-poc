@@ -1,14 +1,16 @@
 "use client";
 import { useParams } from "next/navigation";
-import { useGetReviews } from "../../hooks/useGetReviews";
+import { useGetReviews } from "@/app/hooks/useGetReviews";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { AddReview } from "@/app/components/review/AddReview";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { useWalletKit } from "@mysten/wallet-kit";
 import { Button, Table } from "flowbite-react";
-import { RatingStar } from "@/app/components/review/RatingStar";
 import { HiOutlineArrowRight, HiOutlinePencilAlt } from "react-icons/hi";
+import { SuiMoveObject } from "@mysten/sui.js";
+import { Review } from "@/app/types/Review";
+import { useSui } from "@/app/hooks/useSui";
 
 interface ReviewType {
   id: string;
@@ -26,6 +28,7 @@ interface ReviewItem {
 export default function Service() {
   const router = useRouter();
   const { id } = useParams();
+  const { suiClient } = useSui();
   const { dataReviews, dataName, dataStars, isLoading, currentAccount } =
     useGetReviews(id);
 
@@ -50,12 +53,22 @@ export default function Service() {
         `reviews: ${JSON.stringify(dataReviews)} size=${dataReviews.length}`,
       );
 
-      const reviewsPromises = dataReviews.map(async (item: ReviewItem) => {
+      const reviewsPromises = dataReviews.map(async (item: string) => {
         console.log(`review: ${JSON.stringify(item)}`);
-        console.log(` key > : ${item.fields.key}`);
-        console.log(` priority > : ${item.fields.priority}`);
-        //const review = { name: serviceName, priority: };
-        return { id: item.fields.key, priority: item.fields.priority };
+        let total_score = "0";
+        await suiClient
+          .getObject({
+            id: item,
+            options: {
+              showContent: true,
+            },
+          })
+          .then(async (res) => {
+            total_score = (
+              (res.data?.content as SuiMoveObject).fields as Review
+            ).total_score.toString();
+          });
+        return { id: item, priority: total_score };
       });
       setReviews(await Promise.all(reviewsPromises));
       console.dir(`reviews_post: ${JSON.stringify(reviews)}`);
@@ -100,58 +113,58 @@ export default function Service() {
   };
 
   return (
-      <div className="flex flex-col mx-32 my-10">
-        <h1>Top Reviews</h1>
-        <div>Name: {`${dataName}`}</div>
-        <div>Id: {`${id}`}</div>
-        <div>Total: {`${reviews.length}`}</div>
-        <div className="container">
-          {reviews.length > 0 && (
-              <Table hoverable className="items-center text-center">
-                <Table.Head>
-                  <Table.HeadCell>Review ID</Table.HeadCell>
-                  <Table.HeadCell>Score</Table.HeadCell>
-                  <Table.HeadCell>Action</Table.HeadCell>
-                </Table.Head>
-                <Table.Body className="divide-y">
-                  {reviews.map((item) => (
-                      <Table.Row
-                          className="bg-white dark:border-gray-700 dark:bg-gray-800"
-                          key={item.id}
+    <div className="flex flex-col mx-32 my-10">
+      <h1>Top Reviews</h1>
+      <div>Name: {`${dataName}`}</div>
+      <div>Id: {`${id}`}</div>
+      <div>Total: {`${reviews.length}`}</div>
+      <div className="container">
+        {reviews.length > 0 && (
+          <Table hoverable className="items-center text-center">
+            <Table.Head>
+              <Table.HeadCell>Review ID</Table.HeadCell>
+              <Table.HeadCell>Score</Table.HeadCell>
+              <Table.HeadCell>Action</Table.HeadCell>
+            </Table.Head>
+            <Table.Body className="divide-y">
+              {reviews.map((item) => (
+                <Table.Row
+                  className="bg-white dark:border-gray-700 dark:bg-gray-800"
+                  key={item.id}
+                >
+                  <Table.Cell>
+                    <div className="overflow-hidden">{item.id}</div>
+                  </Table.Cell>
+                  <Table.Cell>{item.priority}</Table.Cell>
+                  <Table.Cell>
+                    {
+                      <Button
+                        color="gray"
+                        pill
+                        onClick={() => onDisplayReview(item)}
                       >
-                        <Table.Cell>
-                          <div className="overflow-hidden">{item.id}</div>
-                        </Table.Cell>
-                        <Table.Cell>{item.priority}</Table.Cell>
-                        <Table.Cell>
-                          {
-                            <Button
-                                color="gray"
-                                pill
-                                onClick={() => onDisplayReview(item)}
-                            >
-                              Info
-                              <HiOutlineArrowRight className="ml-2 h-5 w-5"/>
-                            </Button>
-                          }
-                        </Table.Cell>
-                      </Table.Row>
-                  ))}
-                </Table.Body>
-              </Table>
-          )}
-        </div>
-
-        <Button color="green" pill onClick={() => setOpenModal(true)}>
-          Add a new review
-          <HiOutlinePencilAlt className="ml-2 h-5 w-5"/>
-        </Button>
-        <AddReview
-            serviceId={id}
-            openModal={openModal}
-            setOpenModal={setOpenModal}
-            onSubmitReview={createReview}
-        />
+                        Info
+                        <HiOutlineArrowRight className="ml-2 h-5 w-5" />
+                      </Button>
+                    }
+                  </Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table>
+        )}
       </div>
+
+      <Button color="green" pill onClick={() => setOpenModal(true)}>
+        Add a new review
+        <HiOutlinePencilAlt className="ml-2 h-5 w-5" />
+      </Button>
+      <AddReview
+        serviceId={id}
+        openModal={openModal}
+        setOpenModal={setOpenModal}
+        onSubmitReview={createReview}
+      />
+    </div>
   );
 }
