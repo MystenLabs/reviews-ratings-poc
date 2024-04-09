@@ -1,5 +1,6 @@
 module poc::service {
     use std::string::String;
+    use std::vector;
 
     use sui::balance::{Self, Balance};
     use sui::clock::Clock;
@@ -7,11 +8,10 @@ module poc::service {
     use sui::dynamic_field as df;
     use sui::object::{Self, ID, UID};
     use sui::sui::SUI;
-    use sui::table::{Self, Table};
+    use sui::object_table::{Self, ObjectTable};
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
 
-    use poc::multimap::{Self, MultiMap};
     use poc::review::{Self, Review};
 
     const EInvalidPermission: u64 = 1;
@@ -33,9 +33,8 @@ module poc::service {
         id: UID,
         reward_pool: Balance<SUI>,
         reward: u64,
-        top_reviews: MultiMap<ID>,
-        reviews: Table<ID, ID>,
-        moderators: Table<address, address>,
+        top_reviews: vector<ID>,
+        reviews: ObjectTable<ID, Review>,
         overall_rate: u64,
         name: String
     }
@@ -76,9 +75,8 @@ module poc::service {
             id,
             reward: 1000000,
             reward_pool: balance::zero(),
-            reviews: table::new<ID, ID>(ctx),
-            top_reviews: multimap::empty<ID>(),
-            moderators: table::new<address, address>(ctx),
+            reviews: object_table::new<ID, Review>(ctx),
+            top_reviews: vector[],
             overall_rate: 0,
             name
         };
@@ -106,7 +104,7 @@ module poc::service {
         assert!(poe.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
         let ProofOfExperience { id, service_id: _ } = poe;
         object::delete(id);
-        let (id, total_score, time_issued) = review::new_review(
+        let review = review::new_review(
             owner,
             object::uid_to_inner(&service.id),
             content,
@@ -115,11 +113,7 @@ module poc::service {
             clock,
             ctx
         );
-        table::add<ID, ID>(&mut service.reviews, id, id);
-        update_top_reviews(service, id, total_score);
-        df::add<ID, ReviewRecord>(&mut service.id, id, ReviewRecord { owner, overall_rate, time_issued });
-        let overall_rate = (overall_rate as u64);
-        service.overall_rate = service.overall_rate + overall_rate;
+        add_review(service, review, owner, overall_rate);
     }
 
     /// Writes a new review without proof of experience
@@ -131,7 +125,7 @@ module poc::service {
         clock: &Clock,
         ctx: &mut TxContext
     ) {
-        let (id, total_score, time_issued) = review::new_review(
+        let review = review::new_review(
             owner,
             object::uid_to_inner(&service.id),
             content,
@@ -140,7 +134,20 @@ module poc::service {
             clock,
             ctx
         );
-        table::add<ID, ID>(&mut service.reviews, id, id);
+        add_review(service, review, owner, overall_rate);
+    }
+
+    /// Adds a review to the service
+    fun add_review(
+        service: &mut Service,
+        review: Review,
+        owner: address,
+        overall_rate: u8
+    ) {
+        let id = review::get_id(&review);
+        let total_score = review::get_total_score(&review);
+        let time_issued = review::get_time_issued(&review);
+        object_table::add(&mut service.reviews, id, review);
         update_top_reviews(service, id, total_score);
         df::add<ID, ReviewRecord>(&mut service.id, id, ReviewRecord { owner, overall_rate, time_issued });
         let overall_rate = (overall_rate as u64);
@@ -152,12 +159,12 @@ module poc::service {
         service: &Service,
         total_score: u64
     ): bool {
-        let len = multimap::size<ID>(&service.top_reviews);
+        let len = vector::length(&service.top_reviews);
         if (len < MAX_REVIEWERS_TO_REWARD) {
             return true
         };
-        let (_, last_priority) = multimap::get_entry_by_idx(&service.top_reviews, len - 1);
-        if (total_score > *last_priority) {
+        let review_id = vector::borrow(&service.top_reviews, len - 1);
+        if (total_score > get_total_score(service, *review_id)) {
             return true
         };
         false
@@ -167,10 +174,9 @@ module poc::service {
     fun prune_top_reviews(
         service: &mut Service
     ) {
-        let len = multimap::size<ID>(&service.top_reviews);
+        let len = vector::length(&service.top_reviews);
         if (len > MAX_REVIEWERS_TO_REWARD) {
-            let (last_review_id, _) = multimap::get_entry_by_idx(&service.top_reviews, len - 1);
-            multimap::remove<ID>(&mut service.top_reviews, &*last_review_id);
+            vector::remove(&mut service.top_reviews, len - 1);
         };
     }
 
@@ -181,9 +187,21 @@ module poc::service {
         total_score: u64
     ) {
         if (should_update_top_reviews(service, total_score)) {
-            multimap::insert<ID>(&mut service.top_reviews, review_id, total_score);
+            let i = 0;
+            let len = vector::length(&service.top_reviews);
+            let i_id = *vector::borrow(&service.top_reviews, i);
+            while (get_total_score(service, i_id) < total_score && i < len - 1) {
+                i = i + 1;
+            };
+            vector::insert(&mut service.top_reviews, review_id, i);
             prune_top_reviews(service);
         };
+    }
+
+    /// Gets the total score of a review
+    fun get_total_score(service: &Service, review_id: ID): u64 {
+        let review = object_table::borrow(&service.reviews, review_id);
+        review::get_total_score(review)
     }
 
     /// Distributes rewards
@@ -194,7 +212,7 @@ module poc::service {
     ) {
         assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
         // distribute a fixed amount to top MAX_REVIEWERS_TO_REWARD reviewers
-        let len = multimap::size<ID>(&service.top_reviews);
+        let len = vector::length(&service.top_reviews);
         if (len > MAX_REVIEWERS_TO_REWARD) {
             len = MAX_REVIEWERS_TO_REWARD;
         };
@@ -204,7 +222,7 @@ module poc::service {
         while (i < len) {
             let sub_balance = balance::split(&mut service.reward_pool, service.reward);
             let reward = coin::from_balance(sub_balance, ctx);
-            let (review_id, _) = multimap::get_entry_by_idx<ID>(&service.top_reviews, i);
+            let review_id = vector::borrow(&service.top_reviews, i);
             let record = df::borrow<ID, ReviewRecord>(&service.id, *review_id);
             transfer::public_transfer(reward, record.owner);
             i = i + 1;
@@ -243,14 +261,14 @@ module poc::service {
         ctx: &mut TxContext
     ) {
         // generate an NFT and transfer it to moderator who may use it to delete reviews
-        assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
-        assert!(!table::contains<address, address>(&service.moderators, recipient), EAlreadyExists);
-        table::add<address, address>(&mut service.moderators, recipient, recipient);
-        let mod = Moderator {
-            id: object::new(ctx),
-            service_id: cap.service_id
-        };
-        transfer::transfer(mod, recipient);
+        // assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
+        // assert!(!table::contains<address, address>(&service.moderators, recipient), EAlreadyExists);
+        // table::add<address, address>(&mut service.moderators, recipient, recipient);
+        // let mod = Moderator {
+        //     id: object::new(ctx),
+        //     service_id: cap.service_id
+        // };
+        // transfer::transfer(mod, recipient);
     }
 
     /// Removes a moderator
@@ -259,9 +277,9 @@ module poc::service {
         service: &mut Service,
         addr: address
     ) {
-        assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
-        assert!(table::contains<address, address>(&service.moderators, addr), ENotExists);
-        table::remove<address, address>(&mut service.moderators, addr);
+        // assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
+        // assert!(table::contains<address, address>(&service.moderators, addr), ENotExists);
+        // table::remove<address, address>(&mut service.moderators, addr);
     }
 
     /// Removes a review (only moderators can do this)
@@ -271,10 +289,10 @@ module poc::service {
         review_id: ID,
         ctx: &mut TxContext
     ) {
-        assert!(mod.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
-        assert!(table::contains<address, address>(&service.moderators, tx_context::sender(ctx)), EInvalidPermission);
-        assert!(table::contains<ID, ID>(&service.reviews, review_id), ENotExists);
-        delist_review(service, review_id, ctx);
+        // assert!(mod.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
+        // assert!(table::contains<address, address>(&service.moderators, tx_context::sender(ctx)), EInvalidPermission);
+        // assert!(table::contains<ID, ID>(&service.reviews, review_id), ENotExists);
+        // delist_review(service, review_id, ctx);
     }
 
     /// Delists a review from ranking
@@ -283,17 +301,18 @@ module poc::service {
         review_id: ID,
         ctx: &mut TxContext
     ) {
-        table::remove<ID, ID>(&mut service.reviews, review_id);
-        let record = df::remove<ID, ReviewRecord>(&mut service.id, review_id);
-        service.overall_rate = service.overall_rate - (record.overall_rate as u64);
-        let delisted = Delisted {
-            id: object::new(ctx),
-            review_id
-        };
-        if (multimap::contains<ID>(&service.top_reviews, &review_id)) {
-            multimap::remove<ID>(&mut service.top_reviews, &review_id);
-        };
-        transfer::transfer(delisted, record.owner);
+        // object_table::remove(&mut service.reviews, review_id);
+        // let record = df::remove<ID, ReviewRecord>(&mut service.id, review_id);
+        // service.overall_rate = service.overall_rate - (record.overall_rate as u64);
+        // let delisted = Delisted {
+        //     id: object::new(ctx),
+        //     review_id
+        // };
+        // let (contains, i) = vector::index_of(&service.top_reviews, &review_id);
+        // if (contains) {
+        //     vector::remove(&mut service.top_reviews, i);
+        // };
+        // transfer::transfer(delisted, record.owner);
     }
 
     /// Reorder top_reviews after a review is updated
@@ -301,27 +320,34 @@ module poc::service {
         service: &mut Service,
         rev: &Review
     ) {
-        let id = review::get_id(rev);
+        let review_id = review::get_id(rev);
         let total_score = review::get_total_score(rev);
-        if (!multimap::contains<ID>(&service.top_reviews, &id)) {
-            update_top_reviews(service, id, total_score);
+        let (contains, i) = vector::index_of(&service.top_reviews, &review_id);
+        if (!contains) {
+            update_top_reviews(service, review_id, total_score);
         } else {
-            // remove existing review from multimap and insert back
-            multimap::remove<ID>(&mut service.top_reviews, &id);
-            multimap::insert<ID>(&mut service.top_reviews, id, total_score);
+            // remove existing review from vector and insert back
+            vector::remove(&mut service.top_reviews, i);
+            let i = 0;
+            let len = vector::length(&service.top_reviews);
+            let i_id = *vector::borrow(&service.top_reviews, i);
+            while (get_total_score(service, i_id) < total_score && i < len - 1) {
+                i = i + 1;
+            };
+            vector::insert(&mut service.top_reviews, review_id, i);
         }
     }
 
     /// Deletes a unlisted review and collect storage rebates
-    public fun delete_review(
-        service: &Service,
-        rev: Review,
-        delisted: Delisted
-    ) {
-        assert!(delisted.review_id == review::get_id(&rev), EInvalidPermission);
-        assert!(!table::contains<ID, ID>(&service.reviews, review::get_id(&rev)), ENotDelisted);
-        review::delete_review(rev);
-        let Delisted { id, review_id: _ } = delisted;
-        object::delete(id);
-    }
+    // public fun delete_review(
+    //     service: &Service,
+    //     rev: Review,
+    //     delisted: Delisted
+    // ) {
+    //     assert!(delisted.review_id == review::get_id(&rev), EInvalidPermission);
+    //     assert!(!object_table::contains(&service.reviews, review::get_id(&rev)), ENotDelisted);
+    //     review::delete_review(rev);
+    //     let Delisted { id, review_id: _ } = delisted;
+    //     object::delete(id);
+    // }
 }

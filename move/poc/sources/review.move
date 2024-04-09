@@ -43,7 +43,7 @@ module poc::review {
         overall_rate: u8,
         clock: &Clock,
         ctx: &mut TxContext
-    ): (ID, u64, u64) {
+    ): Review {
         let len = std::string::length(&content);
         assert!(len > MIN_REVIEW_CONTENT_LEN && len <= MAX_REVIEW_CONTENT_LEN, EInvalidContentLen);
         let new_review = Review {
@@ -59,12 +59,7 @@ module poc::review {
             overall_rate,
         };
         new_review.total_score = calculate_total_score(&new_review);
-
-        let id = object::uid_to_inner(&new_review.id);
-        let total_score = new_review.total_score;
-        let time_issued = new_review.time_issued;
-        transfer::share_object(new_review);
-        (id, total_score, time_issued)
+        new_review
     }
 
     /// Deletes a review
@@ -122,5 +117,9 @@ module poc::review {
 
     public fun get_total_score(rev: &Review): u64 {
         rev.total_score
+    }
+
+    public fun get_time_issued(rev: &Review): u64 {
+        rev.time_issued
     }
 }
