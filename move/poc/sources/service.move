@@ -192,15 +192,12 @@ module poc::service {
     fun find_idx(service: &mut Service, total_score: u64): u64 {
         let idx = 0;
         let len = vector::length(&service.top_reviews);
-        if (len > 0) {
+        while (idx < len) {
             let review_id = *vector::borrow(&service.top_reviews, idx);
-            while (get_total_score(service, review_id) > total_score && idx < len - 1) {
-                idx = idx + 1;
-                review_id = *vector::borrow(&service.top_reviews, idx);
+            if (get_total_score(service, review_id) < total_score) {
+                break;
             };
-            if (idx == len - 1) {
-                idx = len;
-            }
+            idx = idx + 1;
         };
         idx
     }

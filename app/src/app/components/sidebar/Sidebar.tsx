@@ -10,6 +10,8 @@ import {
   HiStar,
   HiTrash,
   HiUser,
+  HiPlus,
+  HiMinus,
 } from "react-icons/hi";
 import { useAuthentication } from "@/app/hooks/useAuthentication";
 import { HiRocketLaunch } from "react-icons/hi2";
@@ -38,14 +40,6 @@ export const MySidebar = () => {
                   Customer
                 </Sidebar.Item>
                 <Sidebar.Item
-                  href="/serviceOwner/moderator"
-                  icon={HiStar}
-                  label="Owner"
-                  labelColor="dark"
-                >
-                  Moderator
-                </Sidebar.Item>
-                <Sidebar.Item
                   href="/serviceOwner/topUp"
                   icon={HiCurrencyDollar}
                   label="Owner"
@@ -67,7 +61,7 @@ export const MySidebar = () => {
             {user.role === "user" && (
               <Sidebar.ItemGroup>
                 <Sidebar.Item href="/user" icon={HiChartPie}>
-                  Services
+                  Top Reviews
                 </Sidebar.Item>
                 <Sidebar.Item href="/user/reviews" icon={HiChartSquareBar}>
                   Reviews
@@ -75,11 +69,32 @@ export const MySidebar = () => {
                 <Sidebar.Item href="/user/ownedPoes" icon={HiRocketLaunch}>
                   Recently Visited
                 </Sidebar.Item>
-                <Sidebar.Item href="/user/moderator" icon={HiStar}>
-                  Moderator For
-                </Sidebar.Item>
                 <Sidebar.Item href="/user/delisted" icon={HiTrash}>
                   Delisted Reviews
+                </Sidebar.Item>
+              </Sidebar.ItemGroup>
+            )}
+
+            {user.role === "moderator" && (
+              <Sidebar.ItemGroup>
+                <Sidebar.Item href="/moderator" icon={HiStar}>
+                  Services
+                </Sidebar.Item>
+                <Sidebar.Item
+                  href="/moderator/add"
+                  icon={HiPlus}
+                  label="Admin"
+                  labelColor="dark"
+                >
+                  Add
+                </Sidebar.Item>
+                <Sidebar.Item
+                  href="/moderator/delete"
+                  icon={HiMinus}
+                  label="Owner"
+                  labelColor="dark"
+                >
+                  Delete
                 </Sidebar.Item>
               </Sidebar.ItemGroup>
             )}

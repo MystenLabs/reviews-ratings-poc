@@ -7,19 +7,11 @@ export const useServiceModerator = () => {
   const { executeSignedTransactionBlock } = useSui();
   const { signTransactionBlock } = useWalletKit();
 
-  const handleAddModerator = async (
-    adminCap: string,
-    serviceId: string,
-    recipient: string,
-  ) => {
+  const handleAddModerator = async (modCap: string, recipient: string) => {
     const tx = new TransactionBlock();
     tx.moveCall({
-      target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::add_moderator`,
-      arguments: [
-        tx.object(adminCap),
-        tx.object(serviceId),
-        tx.pure(recipient),
-      ],
+      target: `${process.env.NEXT_PUBLIC_PACKAGE}::moderator::add_moderator`,
+      arguments: [tx.object(modCap), tx.pure(recipient)],
     });
     tx.setGasBudget(1000000000);
     return signTransactionBlock({
@@ -56,94 +48,94 @@ export const useServiceModerator = () => {
       });
   };
 
-  const handleRemoveModerator = async (
-      adminCap: string,
-      serviceId: string,
-      addr: string,
+  const handleRemoveModerator = async (moderatorId: string) => {
+    const tx = new TransactionBlock();
+    tx.moveCall({
+      target: `${process.env.NEXT_PUBLIC_PACKAGE}::moderator::delete_moderator`,
+      arguments: [tx.object(moderatorId)],
+    });
+    tx.setGasBudget(1000000000);
+    return signTransactionBlock({
+      transactionBlock: tx,
+    })
+      .then(async (signedTx: any) => {
+        try {
+          let resp = await executeSignedTransactionBlock({
+            signedTx,
+            requestType: "WaitForLocalExecution",
+            options: {
+              showEffects: true,
+              showEvents: true,
+            },
+          });
+          console.log(resp);
+          if (resp.effects?.status.status === "success") {
+            console.log("Moderator removed");
+            toast.success("Moderator removed");
+            return;
+          } else {
+            console.log("Moderator removed failed");
+            toast.error("Moderator removed failed.");
+            return;
+          }
+        } catch (err) {
+          console.log("Moderator removed failed");
+          console.log(err);
+          toast.error("Something went wrong");
+        }
+      })
+      .catch(() => {
+        console.log("Error while signing tx");
+      });
+  };
+
+  const handleRemoveReview = async (
+    moderatorId: string,
+    serviceId: string,
+    reviewId: string,
   ) => {
     const tx = new TransactionBlock();
     tx.moveCall({
-      target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::remove_moderator`,
+      target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::remove_review`,
       arguments: [
-        tx.object(adminCap),
+        tx.object(moderatorId),
         tx.object(serviceId),
-        tx.pure(addr),
+        tx.pure(reviewId),
       ],
     });
     tx.setGasBudget(1000000000);
     return signTransactionBlock({
       transactionBlock: tx,
     })
-        .then(async (signedTx: any) => {
-          try {
-            let resp = await executeSignedTransactionBlock({
-              signedTx,
-              requestType: "WaitForLocalExecution",
-              options: {
-                showEffects: true,
-                showEvents: true,
-              },
-            });
-            console.log(resp);
-            if (resp.effects?.status.status === "success") {
-              console.log("Moderator removed");
-              toast.success("Moderator removed");
-              return;
-            } else {
-              console.log("Moderator removed failed");
-              toast.error("Moderator removed failed.");
-              return;
-            }
-          } catch (err) {
-            console.log("Moderator removed failed");
-            console.log(err);
-            toast.error("Something went wrong");
-          }
-        })
-        .catch(() => {
-          console.log("Error while signing tx");
-        });
-  };
-
-  const handleRemoveReview = async (moderatorId: string, serviceId: string, reviewId: string) => {
-    const tx = new TransactionBlock();
-    tx.moveCall({
-      target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::remove_review`,
-      arguments: [tx.object(moderatorId), tx.object(serviceId), tx.pure(reviewId)],
-    });
-    tx.setGasBudget(1000000000);
-    return signTransactionBlock({
-      transactionBlock: tx,
-    })
-        .then(async (signedTx: any) => {
-          try {
-            let resp = await executeSignedTransactionBlock({
-              signedTx,
-              requestType: "WaitForLocalExecution",
-              options: {
-                showEffects: true,
-                showEvents: true,
-              },
-            });
-            console.log(resp);
-            if (resp.effects?.status.status === "success") {
-              console.log("Review deleted");
-              toast.success("Review deleted");
-              return;
-            } else {
-              console.log("Review delete failed");
-              toast.error("Review delete failed.");
-              return;
-            }
-          } catch (err) {
+      .then(async (signedTx: any) => {
+        try {
+          let resp = await executeSignedTransactionBlock({
+            signedTx,
+            requestType: "WaitForLocalExecution",
+            options: {
+              showEffects: true,
+              showEvents: true,
+            },
+          });
+          console.log(resp);
+          if (resp.effects?.status.status === "success") {
+            console.log("Review deleted");
+            toast.success("Review deleted");
+            return;
+          } else {
             console.log("Review delete failed");
-            console.log(err);
-            toast.error("Something went wrong");
+            toast.error("Review delete failed.");
+            return;
           }
-        })
-        .catch(() => {
-          console.log("Error while signing tx");
-        });
+        } catch (err) {
+          console.log("Review delete failed");
+          console.log(err);
+          toast.error("Something went wrong");
+        }
+      })
+      .catch(() => {
+        console.log("Error while signing tx");
+      });
   };
 
   return { handleAddModerator, handleRemoveModerator, handleRemoveReview };

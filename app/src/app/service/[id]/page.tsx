@@ -11,22 +11,16 @@ import { HiOutlineArrowRight, HiOutlinePencilAlt } from "react-icons/hi";
 import { SuiMoveObject } from "@mysten/sui.js";
 import { Review } from "@/app/types/Review";
 import { useSui } from "@/app/hooks/useSui";
+import { useAuthentication } from "@/app/hooks/useAuthentication";
 
 interface ReviewType {
   id: string;
   priority: string;
 }
 
-interface ReviewItem {
-  type: string;
-  fields: {
-    key: string;
-    priority: string;
-  };
-}
-
 export default function Service() {
   const router = useRouter();
+  const { user } = useAuthentication();
   const { id } = useParams();
   const { suiClient } = useSui();
   const { dataReviews, dataName, dataStars, isLoading, currentAccount } =
@@ -83,9 +77,9 @@ export default function Service() {
   ): Promise<void> => {
     const tx = new TransactionBlock();
 
-    console.log(`serviceId=${id}`);
-    console.log(`review_body=${reviewBody}`);
-    console.log(`review_len=${reviewBody.length}`);
+    // console.log(`serviceId=${id}`);
+    // console.log(`review_body=${reviewBody}`);
+    // console.log(`review_len=${reviewBody.length}`);
 
     tx.moveCall({
       target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::write_new_review_without_poe`,
@@ -155,10 +149,12 @@ export default function Service() {
         )}
       </div>
 
-      <Button color="green" pill onClick={() => setOpenModal(true)}>
-        Add a new review
-        <HiOutlinePencilAlt className="ml-2 h-5 w-5" />
-      </Button>
+      {user?.role !== "serviceOwner" && (
+        <Button color="green" pill onClick={() => setOpenModal(true)}>
+          Add a new review
+          <HiOutlinePencilAlt className="ml-2 h-5 w-5" />
+        </Button>
+      )}
       <AddReview
         serviceId={id}
         openModal={openModal}

@@ -8,9 +8,7 @@ export default function Home() {
   const { handleLoginAs } = useAuthentication();
 
   return (
-    <div
-      className="flex flex-col justify-center items-center w-screen h-screen"
-    >
+    <div className="flex flex-col justify-center items-center w-screen h-screen">
       <div
         className="relative bg-center bg-cover rounded-lg"
         style={{
@@ -36,9 +34,13 @@ export default function Home() {
               <button
                 key={role}
                 onClick={() => handleLoginAs(role)}
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-[38px] w-[200px] h-[62px]"
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-[38px] w-[900px] h-[62px]"
               >
-                {role === "user" ? "USER" : "SERVICE OWNER"}
+                {role === "user"
+                  ? "REVIEWER"
+                  : role === "serviceOwner"
+                  ? "SERVICE OWNER"
+                  : "MODERATOR"}
               </button>
             ))}
         </div>

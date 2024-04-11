@@ -32,6 +32,7 @@ export const Navbar = () => {
             <span className="underline underline-offset-3 decoration-8 decoration-blue-400 dark:decoration-blue-600">
               {user.role === "user" && "USER"}
               {user.role === "serviceOwner" && "SERVICE OWNER"}
+              {user.role === "moderator" && "MODERATOR"}
             </span>
           </h6>
         )}

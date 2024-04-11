@@ -11,7 +11,13 @@ export const useGetOwnedModerator = () => {
   const [isError, setIsError] = useState(false);
 
   useEffect(() => {
-    reFetchData();
+    if (!!currentAccount?.address) {
+      reFetchData();
+    } else {
+      setData([]);
+      setIsLoading(false);
+      setIsError(false);
+    }
   }, [currentAccount]);
 
   const reFetchData = async () => {
@@ -19,7 +25,7 @@ export const useGetOwnedModerator = () => {
       .getOwnedObjects({
         owner: currentAccount?.address!,
         filter: {
-          StructType: `${process.env.NEXT_PUBLIC_PACKAGE}::service::Moderator`,
+          StructType: `${process.env.NEXT_PUBLIC_PACKAGE}::moderator::Moderator`,
         },
         options: {
           showContent: true,
@@ -40,6 +46,6 @@ export const useGetOwnedModerator = () => {
   };
 
   return {
-    dataModerators: data.map(({ data }) => data.content.fields),
+    dataModerators: data.map(({ data }) => data.content.fields.id.id),
   };
 };
