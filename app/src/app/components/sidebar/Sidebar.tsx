@@ -69,9 +69,6 @@ export const MySidebar = () => {
                 <Sidebar.Item href="/user/ownedPoes" icon={HiRocketLaunch}>
                   Recently Visited
                 </Sidebar.Item>
-                <Sidebar.Item href="/user/delisted" icon={HiTrash}>
-                  Delisted Reviews
-                </Sidebar.Item>
               </Sidebar.ItemGroup>
             )}
 

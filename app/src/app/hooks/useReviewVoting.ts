@@ -12,10 +12,6 @@ export const useReviewVoting = () => {
       target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::upvote`,
       arguments: [tx.object(serviceId), tx.pure(reviewId)],
     });
-    tx.moveCall({
-      target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::reorder`,
-      arguments: [tx.object(serviceId), tx.pure(reviewId)],
-    });
     return handleSignAndExecuteTransaction(tx, "Upvote", setIsLoading);
   };
 
@@ -23,10 +19,6 @@ export const useReviewVoting = () => {
     const tx = new TransactionBlock();
     tx.moveCall({
       target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::downvote`,
-      arguments: [tx.object(serviceId), tx.pure(reviewId)],
-    });
-    tx.moveCall({
-      target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::reorder`,
       arguments: [tx.object(serviceId), tx.pure(reviewId)],
     });
     return handleSignAndExecuteTransaction(tx, "Downvote", setIsLoading);

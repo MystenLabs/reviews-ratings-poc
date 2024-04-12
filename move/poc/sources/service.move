@@ -17,9 +17,7 @@ module poc::service {
 
     const EInvalidPermission: u64 = 1;
     const ENotEnoughBalance: u64 = 2;
-    const EAlreadyExists: u64 = 3;
-    const ENotExists: u64 = 4;
-    const ENotDelisted: u64 = 5;
+    const ENotExists: u64 = 3;
 
     const MAX_REVIEWERS_TO_REWARD: u64 = 10;
 
@@ -44,12 +42,6 @@ module poc::service {
     struct ProofOfExperience has key {
         id: UID,
         service_id: ID,
-    }
-
-    /// Represents a delisted review
-    struct Delisted has key {
-        id: UID,
-        review_id: ID,
     }
 
     /// Represents a review record
@@ -189,13 +181,13 @@ module poc::service {
     }
 
     /// Finds the index of a review in top_reviews
-    fun find_idx(service: &mut Service, total_score: u64): u64 {
+    fun find_idx(service: &Service, total_score: u64): u64 {
         let idx = 0;
         let len = vector::length(&service.top_reviews);
         while (idx < len) {
             let review_id = *vector::borrow(&service.top_reviews, idx);
             if (get_total_score(service, review_id) < total_score) {
-                break;
+                break
             };
             idx = idx + 1;
         };
@@ -275,13 +267,11 @@ module poc::service {
     }
 
     /// Reorder top_reviews after a review is updated
-    public fun reorder(
+    fun reorder(
         service: &mut Service,
-        review_id: ID
+        review_id: ID,
+        total_score: u64
     ) {
-        let review = object_table::borrow_mut(&mut service.reviews, review_id);
-        let review_id = review::get_id(review);
-        let total_score = review::get_total_score(review);
         let (contains, idx) = vector::index_of(&service.top_reviews, &review_id);
         if (!contains) {
             update_top_reviews(service, review_id, total_score);
@@ -297,11 +287,13 @@ module poc::service {
     public fun upvote(service: &mut Service, review_id: ID) {
         let review = object_table::borrow_mut(&mut service.reviews, review_id);
         review::upvote(review);
+        reorder(service, review_id, review::get_total_score(review));
     }
 
     /// Downvotes a review
     public fun downvote(service: &mut Service, review_id: ID) {
         let review = object_table::borrow_mut(&mut service.reviews, review_id);
         review::downvote(review);
+        reorder(service, review_id, review::get_total_score(review));
     }
 }
