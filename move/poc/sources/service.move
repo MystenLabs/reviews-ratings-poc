@@ -1,17 +1,13 @@
 module poc::service {
     use std::string::String;
-    use std::vector;
 
     use sui::balance::{Self, Balance};
     use sui::clock::Clock;
     use sui::coin::{Self, Coin};
     use sui::dynamic_field as df;
-    use sui::object::{Self, ID, UID};
     use sui::sui::SUI;
     use sui::object_table::{Self, ObjectTable};
-    use sui::transfer;
-    use sui::tx_context::{Self, TxContext};
-
+    
     use poc::moderator::{Moderator};
     use poc::review::{Self, Review};
 
@@ -22,13 +18,13 @@ module poc::service {
     const MAX_REVIEWERS_TO_REWARD: u64 = 10;
 
     /// A capability that can be used to perform admin operations on a service
-    struct AdminCap has key, store {
+    public struct AdminCap has key, store {
         id: UID,
         service_id: ID
     }
 
     /// Represents a service
-    struct Service has key, store {
+    public struct Service has key, store {
         id: UID,
         reward_pool: Balance<SUI>,
         reward: u64,
@@ -39,18 +35,19 @@ module poc::service {
     }
 
     /// Represents a proof of experience that can be used to write a review with higher score
-    struct ProofOfExperience has key {
+    public struct ProofOfExperience has key {
         id: UID,
         service_id: ID,
     }
 
     /// Represents a review record
-    struct ReviewRecord has store, drop {
+    public struct ReviewRecord has store, drop {
         owner: address,
         overall_rate: u8,
         time_issued: u64,
     }
 
+    #[allow(lint(self_transfer))]
     /// Creates a new service
     public fun create_service(
         name: String,
@@ -182,7 +179,7 @@ module poc::service {
 
     /// Finds the index of a review in top_reviews
     fun find_idx(service: &Service, total_score: u64): u64 {
-        let idx = 0;
+        let mut idx = 0;
         let len = vector::length(&service.top_reviews);
         while (idx < len) {
             let review_id = *vector::borrow(&service.top_reviews, idx);
@@ -208,13 +205,13 @@ module poc::service {
     ) {
         assert!(cap.service_id == object::uid_to_inner(&service.id), EInvalidPermission);
         // distribute a fixed amount to top MAX_REVIEWERS_TO_REWARD reviewers
-        let len = vector::length(&service.top_reviews);
+        let mut len = vector::length(&service.top_reviews);
         if (len > MAX_REVIEWERS_TO_REWARD) {
             len = MAX_REVIEWERS_TO_REWARD;
         };
         // check balance
         assert!(balance::value(&service.reward_pool) >= (service.reward * len), ENotEnoughBalance);
-        let i = 0;
+        let mut i = 0;
         while (i < len) {
             let sub_balance = balance::split(&mut service.reward_pool, service.reward);
             let reward = coin::from_balance(sub_balance, ctx);
@@ -285,15 +282,15 @@ module poc::service {
 
     /// Upvotes a review
     public fun upvote(service: &mut Service, review_id: ID) {
-        let review = object_table::borrow_mut(&mut service.reviews, review_id);
-        review::upvote(review);
-        reorder(service, review_id, review::get_total_score(review));
+        let review = service.reviews.borrow_mut(review_id);
+        review.upvote();
+        service.reorder(review_id, review.get_total_score());
     }
 
     /// Downvotes a review
     public fun downvote(service: &mut Service, review_id: ID) {
-        let review = object_table::borrow_mut(&mut service.reviews, review_id);
-        review::downvote(review);
-        reorder(service, review_id, review::get_total_score(review));
+        let review = service.reviews.borrow_mut(review_id);
+        review.downvote();
+        service.reorder(review_id, review.get_total_score());
     }
 }

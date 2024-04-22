@@ -3,10 +3,8 @@ module poc::review {
 
     use sui::clock::{Self, Clock};
     use sui::math;
-    use sui::object::{Self, ID, UID};
-    use sui::tx_context::TxContext;
 
-    friend poc::service;
+    /* friend poc::service; */
 
     const EMaxDownvoteReached: u64 = 1;
     const EInvalidContentLen: u64 = 2;
@@ -15,7 +13,7 @@ module poc::review {
     const MAX_REVIEW_CONTENT_LEN: u64 = 1000;
 
     /// Represents a review of a service
-    struct Review has key, store {
+    public struct Review has key, store {
         id: UID,
         owner: address,
         service_id: ID,
@@ -34,7 +32,7 @@ module poc::review {
     }
 
     /// Creates a new review
-    public(friend) fun new_review(
+    public(package) fun new_review(
         owner: address,
         service_id: ID,
         content: String,
@@ -45,7 +43,7 @@ module poc::review {
     ): Review {
         let len = std::string::length(&content);
         assert!(len > MIN_REVIEW_CONTENT_LEN && len <= MAX_REVIEW_CONTENT_LEN, EInvalidContentLen);
-        let new_review = Review {
+        let mut new_review = Review {
             id: object::new(ctx),
             owner,
             service_id,
@@ -62,7 +60,7 @@ module poc::review {
     }
 
     /// Deletes a review
-    public(friend) fun delete_review(rev: Review) {
+    public(package) fun delete_review(rev: Review) {
         let Review {
             id, owner: _, service_id: _, content: _, len: _, votes: _, time_issued: _,
             has_poe: _, total_score: _, overall_rate: _
@@ -72,28 +70,15 @@ module poc::review {
 
     /// Calculates the total score of a review
     fun calculate_total_score(rev: &Review): u64 {
-        // compute total score 
-        // Result is in 2 decimals points in precision; 100 is actually 1
-        // TOTALSCORE = (IS + ES) * VM
-
-        // intrinsic_score = len / 100; max = 1.5
-        let intrinsic_score: u64 = rev.len;
+        let mut intrinsic_score: u64 = rev.len;
         intrinsic_score = math::min(intrinsic_score, 150);
-
-        // extrinsic_score = # of upvotes; 1 + (0.1 * per upvotes)
         let extrinsic_score: u64 = 10 * rev.votes;
-
-        // VM = either 1.0 or 2.0 (if user has proof of experience)
-        let vm: u64 = 1;
-        if (rev.has_poe == true) {
-            vm = 2;
-        };
-
+        let vm: u64 = if (rev.has_poe) { 2 } else { 1 };
         (intrinsic_score + extrinsic_score) * vm
     }
 
     /// Updates the total score of a review
-    public fun update_total_score(rev: &mut Review) {
+    fun update_total_score(rev: &mut Review) {
         rev.total_score = calculate_total_score(rev);
     }
 

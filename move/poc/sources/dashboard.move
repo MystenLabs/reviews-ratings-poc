@@ -1,13 +1,10 @@
 module poc::dashboard {
     use std::string::String;
 
-    use sui::object::{Self, ID, UID};
-    use sui::transfer;
-    use sui::tx_context::TxContext;
     use sui::dynamic_field as df;
 
     /// Dashboard is a collection of services
-    struct Dashboard has key, store {
+    public struct Dashboard has key, store {
         id: UID,
         service_type: String
     }

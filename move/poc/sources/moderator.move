@@ -1,15 +1,13 @@
 module poc::moderator {
-    use sui::object::{Self, UID};
-    use sui::transfer;
-    use sui::tx_context::{TxContext, sender};
+    use sui::tx_context::{sender};
 
     /// Represents a moderator that can be used to delete reviews
-    struct Moderator has key {
+    public struct Moderator has key {
         id: UID,
     }
 
     /// A capability that can be used to setup moderators
-    struct ModCap has key, store {
+    public struct ModCap has key, store {
         id: UID
     }
 
