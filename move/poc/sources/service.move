@@ -158,9 +158,9 @@ module poc::service {
     fun prune_top_reviews(
         service: &mut Service
     ) {
-        let len = vector::length(&service.top_reviews);
+        let len = service.top_reviews.length();
         if (len > MAX_REVIEWERS_TO_REWARD) {
-            vector::remove(&mut service.top_reviews, len - 1);
+            service.top_reviews.remove(len - 1);
         };
     }
 
@@ -172,21 +172,23 @@ module poc::service {
     ) {
         if (should_update_top_reviews(service, total_score)) {
             let idx = find_idx(service, total_score);
-            vector::insert(&mut service.top_reviews, review_id, idx);
+            service.top_reviews.insert(review_id, idx);
             prune_top_reviews(service);
         };
     }
 
     /// Finds the index of a review in top_reviews
     fun find_idx(service: &Service, total_score: u64): u64 {
+        let len = service.top_reviews.length();
+        let mut i = 0;
         let mut idx = 0;
-        let len = vector::length(&service.top_reviews);
-        while (idx < len) {
-            let review_id = *vector::borrow(&service.top_reviews, idx);
-            if (get_total_score(service, review_id) < total_score) {
-                break
+        while (i < len) {
+            idx = len - i - 1;
+            let review_id = service.top_reviews[idx];
+            if (get_total_score(service, review_id) > total_score) {
+                return idx + 1
             };
-            idx = idx + 1;
+            i = i + 1;
         };
         idx
     }
@@ -252,12 +254,12 @@ module poc::service {
         service: &mut Service,
         review_id: ID,
     ) {
-        assert!(object_table::contains(&service.reviews, review_id), ENotExists);
+        assert!(service.reviews.contains(review_id), ENotExists);
         let record = df::remove<ID, ReviewRecord>(&mut service.id, review_id);
         service.overall_rate = service.overall_rate - (record.overall_rate as u64);
-        let (contains, i) = vector::index_of(&service.top_reviews, &review_id);
+        let (contains, i) = service.top_reviews.index_of(&review_id);
         if (contains) {
-            vector::remove(&mut service.top_reviews, i);
+            service.top_reviews.remove(i);
         };
         let review = object_table::remove(&mut service.reviews, review_id);
         review::delete_review(review);
@@ -269,14 +271,14 @@ module poc::service {
         review_id: ID,
         total_score: u64
     ) {
-        let (contains, idx) = vector::index_of(&service.top_reviews, &review_id);
+        let (contains, idx) = service.top_reviews.index_of(&review_id);
         if (!contains) {
             update_top_reviews(service, review_id, total_score);
         } else {
             // remove existing review from vector and insert back
-            vector::remove(&mut service.top_reviews, idx);
+            service.top_reviews.remove(idx);
             let idx = find_idx(service, total_score);
-            vector::insert(&mut service.top_reviews, review_id, idx);
+            service.top_reviews.insert(review_id, idx);
         }
     }
 
