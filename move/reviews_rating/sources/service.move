@@ -1,4 +1,7 @@
-module poc::service {
+// Copyright (c) Mysten Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
+module reviews_rating::service {
     use std::string::String;
 
     use sui::balance::{Self, Balance};
@@ -8,8 +11,8 @@ module poc::service {
     use sui::sui::SUI;
     use sui::object_table::{Self, ObjectTable};
     
-    use poc::moderator::{Moderator};
-    use poc::review::{Self, Review};
+    use reviews_rating::moderator::{Moderator};
+    use reviews_rating::review::{Self, Review};
 
     const EInvalidPermission: u64 = 1;
     const ENotEnoughBalance: u64 = 2;

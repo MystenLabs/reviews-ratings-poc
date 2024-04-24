@@ -26,8 +26,8 @@ dist/
 build/
 
 # Move
-move/poc/Move.lock
-move/poc/build
+move/reviews_rating/Move.lock
+move/reviews_rating/build
 
 # env files under the setup directory
 setup/*.env

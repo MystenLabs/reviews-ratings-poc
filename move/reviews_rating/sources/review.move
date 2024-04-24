@@ -1,10 +1,11 @@
-module poc::review {
+// Copyright (c) Mysten Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
+module reviews_rating::review {
     use std::string::String;
 
     use sui::clock::{Self, Clock};
     use sui::math;
-
-    /* friend poc::service; */
 
     const EMaxDownvoteReached: u64 = 1;
     const EInvalidContentLen: u64 = 2;
