@@ -7,8 +7,7 @@ module reviews_rating::review {
     use sui::clock::{Self, Clock};
     use sui::math;
 
-    const EMaxDownvoteReached: u64 = 1;
-    const EInvalidContentLen: u64 = 2;
+    const EInvalidContentLen: u64 = 1;
 
     const MIN_REVIEW_CONTENT_LEN: u64 = 5;
     const MAX_REVIEW_CONTENT_LEN: u64 = 1000;
@@ -50,13 +49,13 @@ module reviews_rating::review {
             service_id,
             content,
             len,
-            votes: 10, // start with 10, can go down to 0
+            votes: 0,
             time_issued: clock::timestamp_ms(clock),
             has_poe,
             total_score: 0,
             overall_rate,
         };
-        new_review.total_score = calculate_total_score(&new_review);
+        new_review.total_score = new_review.calculate_total_score();
         new_review
     }
 
@@ -80,24 +79,17 @@ module reviews_rating::review {
 
     /// Updates the total score of a review
     fun update_total_score(rev: &mut Review) {
-        rev.total_score = calculate_total_score(rev);
+        rev.total_score = rev.calculate_total_score();
     }
 
     /// Upvotes a review
     public fun upvote(rev: &mut Review) {
         rev.votes = rev.votes + 1;
-        update_total_score(rev);
-    }
-
-    /// Downvotes a review
-    public fun downvote(rev: &mut Review) {
-        assert!(rev.votes > 0, EMaxDownvoteReached);
-        rev.votes = rev.votes - 1;
-        update_total_score(rev);
+        rev.update_total_score();
     }
 
     public fun get_id(rev: &Review): ID {
-        object::uid_to_inner(&rev.id)
+        rev.id.to_inner()
     }
 
     public fun get_total_score(rev: &Review): u64 {
