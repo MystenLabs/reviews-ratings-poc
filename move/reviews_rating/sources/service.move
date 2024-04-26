@@ -134,7 +134,7 @@ module reviews_rating::service {
         let id = review.get_id();
         let total_score = review.get_total_score();
         let time_issued = review.get_time_issued();
-        object_table::add(&mut service.reviews, id, review);
+        service.reviews.add(id, review);
         service.update_top_reviews(id, total_score);
         df::add(&mut service.id, id, ReviewRecord { owner, overall_rate, time_issued });
         let overall_rate = (overall_rate as u64);
@@ -147,14 +147,8 @@ module reviews_rating::service {
         total_score: u64
     ): bool {
         let len = service.top_reviews.length();
-        if (len < MAX_REVIEWERS_TO_REWARD) {
-            return true
-        };
-        let review_id = &service.top_reviews[len - 1];
-        if (total_score > service.get_total_score(*review_id)) {
-            return true
-        };
-        false
+        len < MAX_REVIEWERS_TO_REWARD
+            || total_score > service.get_total_score(service.top_reviews[len - 1])
     }
 
     /// Prunes top_reviews if it exceeds MAX_REVIEWERS_TO_REWARD
@@ -163,7 +157,7 @@ module reviews_rating::service {
     ) {
         let len = service.top_reviews.length();
         if (len > MAX_REVIEWERS_TO_REWARD) {
-            service.top_reviews.remove(len - 1);
+            service.top_reviews.pop_back();
         };
     }
 
@@ -173,7 +167,7 @@ module reviews_rating::service {
         review_id: ID,
         total_score: u64
     ) {
-        if (should_update_top_reviews(service, total_score)) {
+        if (service.should_update_top_reviews(total_score)) {
             let idx = service.find_idx(total_score);
             service.top_reviews.insert(review_id, idx);
             service.prune_top_reviews();
@@ -182,24 +176,20 @@ module reviews_rating::service {
 
     /// Finds the index of a review in top_reviews
     fun find_idx(service: &Service, total_score: u64): u64 {
-        let len = service.top_reviews.length();
-        let mut i = 0;
-        let mut idx = 0;
-        while (i < len) {
-            idx = len - i - 1;
-            let review_id = service.top_reviews[idx];
+        let mut i = service.top_reviews.length();
+        while (0 < i) {
+            let review_id = service.top_reviews[i - 1];
             if (service.get_total_score(review_id) > total_score) {
-                return idx + 1
+                break
             };
-            i = i + 1;
+            i = i - 1;
         };
-        idx
+        i
     }
 
     /// Gets the total score of a review
     fun get_total_score(service: &Service, review_id: ID): u64 {
-        let review = &service.reviews[review_id];
-        review.get_total_score()
+        service.reviews[review_id].get_total_score()
     }
 
     /// Distributes rewards
@@ -215,10 +205,10 @@ module reviews_rating::service {
             len = MAX_REVIEWERS_TO_REWARD;
         };
         // check balance
-        assert!(balance::value(&service.reward_pool) >= (service.reward * len), ENotEnoughBalance);
+        assert!(service.reward_pool.value() >= (service.reward * len), ENotEnoughBalance);
         let mut i = 0;
         while (i < len) {
-            let sub_balance = balance::split(&mut service.reward_pool, service.reward);
+            let sub_balance = service.reward_pool.split(service.reward);
             let reward = coin::from_balance(sub_balance, ctx);
             let review_id = &service.top_reviews[i];
             let record = df::borrow<ID, ReviewRecord>(&service.id, *review_id);
@@ -232,7 +222,7 @@ module reviews_rating::service {
         service: &mut Service,
         coin: Coin<SUI>
     ) {
-        balance::join(&mut service.reward_pool, coin::into_balance(coin));
+        service.reward_pool.join(coin.into_balance());
     }
 
     /// Mints a proof of experience for a customer

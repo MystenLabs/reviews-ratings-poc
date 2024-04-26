@@ -5,12 +5,12 @@ import { useGetReview } from "@/app/hooks/useGetReview";
 import { useReviewVoting } from "@/app/hooks/useReviewVoting";
 import React from "react";
 import { Button } from "flowbite-react";
-import { HiThumbDown, HiThumbUp } from "react-icons/hi";
+import { HiThumbUp } from "react-icons/hi";
 
 export default function Service() {
   const { id } = useParams();
   const { dataReview, isLoading, isError, currentAccount } = useGetReview(id);
-  const { handleUpvote, handleDownvote } = useReviewVoting();
+  const { handleUpvote } = useReviewVoting();
 
   if (!currentAccount) {
     return <h3>Wallet not connected</h3>;
@@ -18,12 +18,6 @@ export default function Service() {
 
   const onUpvote = async (serviceId: string) => {
     const res = await handleUpvote(serviceId, id);
-    console.log("upvoteReview: " + res);
-    window.location.reload();
-  };
-
-  const onDownvote = async (serviceId: string) => {
-    const res = await handleDownvote(serviceId, id);
     console.log("upvoteReview: " + res);
     window.location.reload();
   };
@@ -136,14 +130,6 @@ export default function Service() {
           >
             Up Vote
             <HiThumbUp className="ml-2 h-5 w-5" />
-          </Button>
-          <Button
-            color="red"
-            pill
-            onClick={() => onDownvote(`${dataReview?.service_id}`)}
-          >
-            Down Vote
-            <HiThumbDown className="ml-2 h-5 w-5" />
           </Button>
         </div>
       </div>

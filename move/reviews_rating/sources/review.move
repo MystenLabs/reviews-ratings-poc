@@ -4,7 +4,7 @@
 module reviews_rating::review {
     use std::string::String;
 
-    use sui::clock::{Self, Clock};
+    use sui::clock::Clock;
     use sui::math;
 
     const EInvalidContentLen: u64 = 1;
@@ -41,7 +41,7 @@ module reviews_rating::review {
         clock: &Clock,
         ctx: &mut TxContext
     ): Review {
-        let len = std::string::length(&content);
+        let len = content.length();
         assert!(len > MIN_REVIEW_CONTENT_LEN && len <= MAX_REVIEW_CONTENT_LEN, EInvalidContentLen);
         let mut new_review = Review {
             id: object::new(ctx),
@@ -50,7 +50,7 @@ module reviews_rating::review {
             content,
             len,
             votes: 0,
-            time_issued: clock::timestamp_ms(clock),
+            time_issued: clock.timestamp_ms(),
             has_poe,
             total_score: 0,
             overall_rate,
