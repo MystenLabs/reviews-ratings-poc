@@ -36,3 +36,7 @@ setup/*.env
 
 
 app/.env
+
+CLAUDE.md
+FIX_IT_FRIDAY_PLAN.md
+MOVE_REFACTORING_PLAN.md
