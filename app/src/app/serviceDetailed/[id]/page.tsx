@@ -4,7 +4,7 @@ import { useGetAllReviews } from "../../hooks/useGetAllReviews";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { AddReview } from "@/app/components/review/AddReview";
-import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { Transaction } from "@mysten/sui/transactions";
 import { useWalletKit } from "@mysten/wallet-kit";
 import { Button, Table } from "flowbite-react";
 import { RatingStar } from "@/app/components/review/RatingStar";
@@ -17,7 +17,7 @@ export default function ServiceDetailed() {
     useGetAllReviews(id);
 
   const [openModal, setOpenModal] = useState(false);
-  const { signAndExecuteTransactionBlock } = useWalletKit();
+  const { signAndExecuteTransaction } = useWalletKit();
 
   const SUI_CLOCK =
     "0x0000000000000000000000000000000000000000000000000000000000000006";
@@ -43,7 +43,7 @@ export default function ServiceDetailed() {
     reviewBody: string,
     overallRate: string,
   ): Promise<void> => {
-    const tx = new TransactionBlock();
+    const tx = new Transaction();
 
     console.log(`serviceId=${id}`);
     console.log(`review_body=${reviewBody}`);
@@ -61,7 +61,7 @@ export default function ServiceDetailed() {
     });
 
     tx.setGasBudget(1000000000);
-    const resp = await signAndExecuteTransactionBlock({
+    const resp = await signAndExecuteTransaction({
       transactionBlock: tx,
       options: {
         showEffects: true,

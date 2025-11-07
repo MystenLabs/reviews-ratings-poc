@@ -3,8 +3,8 @@
 import React, { ChangeEvent, useState, useCallback } from "react";
 import { Services } from "../components/Services";
 import { useWalletKit } from "@mysten/wallet-kit";
-import { SuiMoveObject } from "@mysten/sui.js";
-import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { SuiMoveObject } from "@mysten/sui";
+import { Transaction } from "@mysten/sui/transactions";
 import { useServiceCreation } from "../hooks/useServiceCreation";
 import { useDashboardRegisterService } from "../hooks/useDashboardRegisterService";
 import { useSignAndExecuteTransaction } from "../hooks/useSignAndExecuteTransaction";

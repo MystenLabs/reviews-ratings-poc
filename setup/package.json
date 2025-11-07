@@ -10,9 +10,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@mysten/sui.js": "^0.41.2",
+    "@mysten/sui": "^1.44.0",
     "dotenv": "^16.0.3",
-    "typescript": "^5.0.4"
+    "typescript": "^5.9.3"
   },
   "devDependencies": {
     "env-cmd": "^10.1.0",

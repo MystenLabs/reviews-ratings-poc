@@ -1,4 +1,4 @@
-import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { Transaction } from "@mysten/sui/transactions";
 import { useSignAndExecuteTransaction } from "./useSignAndExecuteTransaction";
 // has to be async
 export const useDashboardRegisterService = () => {
@@ -9,7 +9,7 @@ export const useDashboardRegisterService = () => {
     service_id: any,
     setIsLoading: any
   ) => {
-    const tx = new TransactionBlock();
+    const tx = new Transaction();
     tx.moveCall({
       target: `${process.env.NEXT_PUBLIC_PACKAGE}::dashboard::register_service`,
       arguments: [

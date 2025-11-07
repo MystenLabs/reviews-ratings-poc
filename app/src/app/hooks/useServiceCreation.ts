@@ -1,4 +1,4 @@
-import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { Transaction } from "@mysten/sui/transactions";
 import { useSignAndExecuteTransaction } from "./useSignAndExecuteTransaction";
 
 export const useServiceCreation = () => {
@@ -8,7 +8,7 @@ export const useServiceCreation = () => {
     dashboardId: string,
     setIsLoading: any,
   ) => {
-    const tx = new TransactionBlock();
+    const tx = new Transaction();
     const serviceCreation = tx.moveCall({
       target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::create_service`,
       arguments: [tx.pure(name)],
@@ -22,11 +22,11 @@ export const useServiceCreation = () => {
     console.log("Create Service, signing transaction block...");
     return handleSignAndExecuteTransaction(tx, "Create Service", setIsLoading);
   };
-  const handleServiceCreationTransactionBlock = async (
+  const handleServiceCreationTransaction = async (
     name: String,
     setIsLoading: any,
-  ): Promise<TransactionBlock> => {
-    const tx = new TransactionBlock();
+  ): Promise<Transaction> => {
+    const tx = new Transaction();
     tx.moveCall({
       target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::create_service`,
       arguments: [tx.pure(name)],
@@ -37,6 +37,6 @@ export const useServiceCreation = () => {
   };
   return {
     handleServiceCreationAndRegister,
-    handleServiceCreationTransactionBlock,
+    handleServiceCreationTransaction,
   };
 };

@@ -1,11 +1,11 @@
 import { useWalletKit } from "@mysten/wallet-kit";
 import { useEffect, useState } from "react";
-import { useSui } from "./useSui";
-import { SuiMoveObject } from "@mysten/sui.js";
+import { useSuiClient } from "@mysten/dapp-kit";
+import { SuiMoveObject } from "@mysten/sui";
 
 export const useGetModerators = (serviceId: string) => {
   const { currentAccount } = useWalletKit();
-  const { suiClient } = useSui();
+  const suiClient = useSuiClient();
 
   const [dataModerators, setDataModerators] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);

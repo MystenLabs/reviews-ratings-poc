@@ -1,12 +1,12 @@
 import { useWalletKit } from "@mysten/wallet-kit";
 import { toast } from "react-hot-toast";
-import { useSui } from "./useSui";
-import { TransactionBlock } from "@mysten/sui.js/transactions";
-import { SuiMoveObject } from "@mysten/sui.js";
+import { useSuiClient } from "@mysten/dapp-kit";
+import { Transaction } from "@mysten/sui/transactions";
+import { SuiMoveObject } from "@mysten/sui";
 
 export const useServiceReview = () => {
-  const { executeSignedTransactionBlock, suiClient } = useSui();
-  const { signTransactionBlock } = useWalletKit();
+  const { executeSignedTransaction, suiClient } = useSui();
+  const { signTransaction } = useWalletKit();
 
   const handleDeleteReview = async (delistedId: string, reviewId: string) => {
     // todo: get ServiceId from reviewId
@@ -28,7 +28,7 @@ export const useServiceReview = () => {
         return;
       });
 
-    const tx = new TransactionBlock();
+    const tx = new Transaction();
     console.log(`serviceId=${serviceId} reviewId=${reviewId} delistedId=${delistedId}`);
     tx.moveCall({
       target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::delete_review`,
@@ -39,12 +39,12 @@ export const useServiceReview = () => {
       ],
     });
     tx.setGasBudget(1000000000);
-    return signTransactionBlock({
+    return signTransaction({
       transactionBlock: tx,
     })
       .then(async (signedTx: any) => {
         try {
-          let resp = await executeSignedTransactionBlock({
+          let resp = await executeSignedTransaction({
             signedTx,
             requestType: "WaitForLocalExecution",
             options: {

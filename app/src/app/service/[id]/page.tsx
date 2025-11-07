@@ -4,13 +4,13 @@ import { useGetReviews } from "@/app/hooks/useGetReviews";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { AddReview } from "@/app/components/review/AddReview";
-import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { Transaction } from "@mysten/sui/transactions";
 import { useWalletKit } from "@mysten/wallet-kit";
 import { Button, Table } from "flowbite-react";
 import { HiOutlineArrowRight, HiOutlinePencilAlt } from "react-icons/hi";
-import { SuiMoveObject } from "@mysten/sui.js";
+import { SuiMoveObject } from "@mysten/sui";
 import { Review } from "@/app/types/Review";
-import { useSui } from "@/app/hooks/useSui";
+import { useSuiClient } from "@mysten/dapp-kit";
 import { useAuthentication } from "@/app/hooks/useAuthentication";
 
 interface ReviewType {
@@ -22,14 +22,14 @@ export default function Service() {
   const router = useRouter();
   const { user } = useAuthentication();
   const { id } = useParams();
-  const { suiClient } = useSui();
+  const suiClient = useSuiClient();
   const { dataReviews, dataName, dataStars, isLoading, currentAccount } =
     useGetReviews(id);
 
   const [reviews, setReviews] = useState([] as ReviewType[]);
 
   const [openModal, setOpenModal] = useState(false);
-  const { signAndExecuteTransactionBlock } = useWalletKit();
+  const { signAndExecuteTransaction } = useWalletKit();
 
   const SUI_CLOCK =
     "0x0000000000000000000000000000000000000000000000000000000000000006";
@@ -75,7 +75,7 @@ export default function Service() {
     reviewBody: string,
     overallRate: string,
   ): Promise<void> => {
-    const tx = new TransactionBlock();
+    const tx = new Transaction();
 
     // console.log(`serviceId=${id}`);
     // console.log(`review_body=${reviewBody}`);
@@ -93,7 +93,7 @@ export default function Service() {
     });
 
     tx.setGasBudget(1000000000);
-    const resp = await signAndExecuteTransactionBlock({
+    const resp = await signAndExecuteTransaction({
       transactionBlock: tx,
       options: {
         showEffects: true,

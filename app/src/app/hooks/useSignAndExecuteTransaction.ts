@@ -1,49 +1,41 @@
-import { useWalletKit } from "@mysten/wallet-kit"
+import { useSignAndExecuteTransaction as useDappKitSignAndExecute } from "@mysten/dapp-kit";
 import { toast } from "react-hot-toast";
-import { useSui } from "./useSui";
-import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { Transaction } from "@mysten/sui/transactions";
 
+/**
+ * Wrapper around dapp-kit's useSignAndExecuteTransaction with toast notifications
+ *
+ * Migration from old pattern:
+ * - useWalletKit + manual signing → useSignAndExecuteTransaction from dapp-kit
+ * - transactionBlock parameter → transaction parameter
+ * - Returns { digest, effects } automatically
+ */
 export const useSignAndExecuteTransaction = () => {
-    const { executeSignedTransactionBlock } = useSui();
-    const { signTransactionBlock } = useWalletKit();
+    const { mutate: signAndExecuteTransaction } = useDappKitSignAndExecute();
+
     const handleSignAndExecuteTransaction = async (
-        tx: TransactionBlock,
-        operation: String, 
-        setIsLoading: any
+        tx: Transaction,
+        operation: string,
+        setIsLoading?: (loading: boolean) => void
     ) => {
-        return signTransactionBlock({
-            transactionBlock: tx,
-        }).then((signedTx: any) => {
-            return executeSignedTransactionBlock({
-                signedTx,
-                requestType: "WaitForLocalExecution",
-                options: {
-                    showEffects: true,
-                    showEvents: true,
-                },
-            }).then((resp) => {
-                setIsLoading(false);
-                console.log(resp);
-                if (resp.effects?.status.status === "success") {
-                    console.log(`${operation} operation successful`);
+        signAndExecuteTransaction(
+            {
+                transaction: tx,
+            },
+            {
+                onSuccess: (result) => {
+                    if (setIsLoading) setIsLoading(false);
+                    console.log(`${operation} operation successful`, result);
                     toast.success(`${operation} operation successful`);
-                    return
-                } else {
-                    console.log(`${operation} operation failed`);
+                },
+                onError: (error) => {
+                    if (setIsLoading) setIsLoading(false);
+                    console.error(`${operation} operation failed`, error);
                     toast.error(`${operation} operation failed.`);
-                    return
-                }
-            }).catch((err) => {
-                setIsLoading(false);
-                console.log(`${operation} operation failed`);
-                console.log(`${operation} error : `,err);
-                toast.error(`Something went wrong, ${operation} operation failed.`);
-            });
-        }).catch((err) => {
-            setIsLoading(false);
-            console.log(`signing goes wrong ${operation} error : `,err);
-            toast.error(`signing goes wrong, ${operation} operation failed.`);
-        }); // <-- added missing semicolon here
-    }
-    return { handleSignAndExecuteTransaction }
-}
+                },
+            }
+        );
+    };
+
+    return { handleSignAndExecuteTransaction };
+};

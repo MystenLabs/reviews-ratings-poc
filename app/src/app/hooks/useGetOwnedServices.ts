@@ -1,13 +1,13 @@
 import { useWalletKit } from "@mysten/wallet-kit";
 import { useEffect, useState } from "react";
-import { useSui } from "./useSui";
+import { useSuiClient } from "@mysten/dapp-kit";
 import { Service as ServiceType } from "@/app/types/Service";
-import { SuiMoveObject } from "@mysten/sui.js";
+import { SuiMoveObject } from "@mysten/sui";
 import { useGetOwnedAdminCaps } from "@/app/hooks/useGetOwnedAdminCaps";
 
 export const useGetOwnedServices = () => {
   const { currentAccount } = useWalletKit();
-  const { suiClient } = useSui();
+  const suiClient = useSuiClient();
 
   const { dataAdminCaps, isLoading } = useGetOwnedAdminCaps();
   const [services, setServices] = useState([] as ServiceType[]);

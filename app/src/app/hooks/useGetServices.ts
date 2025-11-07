@@ -1,10 +1,10 @@
 import { useWalletKit } from "@mysten/wallet-kit";
 import { useEffect, useState } from "react";
-import { useSui } from "./useSui";
+import { useSuiClient } from "@mysten/dapp-kit";
 
 export const useGetServices = (dashboardId: string) => {
   const { currentAccount } = useWalletKit();
-  const { suiClient } = useSui();
+  const suiClient = useSuiClient();
 
   const [serviceList, setServiceList] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);

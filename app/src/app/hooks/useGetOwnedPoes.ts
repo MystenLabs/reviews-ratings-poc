@@ -1,10 +1,10 @@
 import { useWalletKit } from "@mysten/wallet-kit";
 import { useEffect, useState } from "react";
-import { useSui } from "./useSui";
+import { useSuiClient } from "@mysten/dapp-kit";
 
 export const useGetOwnedPoes = () => {
   const { currentAccount } = useWalletKit();
-  const { suiClient } = useSui();
+  const suiClient = useSuiClient();
 
   const [data, setData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);

@@ -1,25 +1,25 @@
 import { useWalletKit } from "@mysten/wallet-kit";
 import { toast } from "react-hot-toast";
-import { useSui } from "./useSui";
-import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { useSuiClient } from "@mysten/dapp-kit";
+import { Transaction } from "@mysten/sui/transactions";
 
 export const useServiceModerator = () => {
-  const { executeSignedTransactionBlock } = useSui();
-  const { signTransactionBlock } = useWalletKit();
+  const { executeSignedTransaction } = useSui();
+  const { signTransaction } = useWalletKit();
 
   const handleAddModerator = async (modCap: string, recipient: string) => {
-    const tx = new TransactionBlock();
+    const tx = new Transaction();
     tx.moveCall({
       target: `${process.env.NEXT_PUBLIC_PACKAGE}::moderator::add_moderator`,
       arguments: [tx.object(modCap), tx.pure(recipient)],
     });
     tx.setGasBudget(1000000000);
-    return signTransactionBlock({
+    return signTransaction({
       transactionBlock: tx,
     })
       .then(async (signedTx: any) => {
         try {
-          let resp = await executeSignedTransactionBlock({
+          let resp = await executeSignedTransaction({
             signedTx,
             requestType: "WaitForLocalExecution",
             options: {
@@ -49,18 +49,18 @@ export const useServiceModerator = () => {
   };
 
   const handleRemoveModerator = async (moderatorId: string) => {
-    const tx = new TransactionBlock();
+    const tx = new Transaction();
     tx.moveCall({
       target: `${process.env.NEXT_PUBLIC_PACKAGE}::moderator::delete_moderator`,
       arguments: [tx.object(moderatorId)],
     });
     tx.setGasBudget(1000000000);
-    return signTransactionBlock({
+    return signTransaction({
       transactionBlock: tx,
     })
       .then(async (signedTx: any) => {
         try {
-          let resp = await executeSignedTransactionBlock({
+          let resp = await executeSignedTransaction({
             signedTx,
             requestType: "WaitForLocalExecution",
             options: {
@@ -94,7 +94,7 @@ export const useServiceModerator = () => {
     serviceId: string,
     reviewId: string,
   ) => {
-    const tx = new TransactionBlock();
+    const tx = new Transaction();
     tx.moveCall({
       target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::remove_review`,
       arguments: [
@@ -104,12 +104,12 @@ export const useServiceModerator = () => {
       ],
     });
     tx.setGasBudget(1000000000);
-    return signTransactionBlock({
+    return signTransaction({
       transactionBlock: tx,
     })
       .then(async (signedTx: any) => {
         try {
-          let resp = await executeSignedTransactionBlock({
+          let resp = await executeSignedTransaction({
             signedTx,
             requestType: "WaitForLocalExecution",
             options: {
