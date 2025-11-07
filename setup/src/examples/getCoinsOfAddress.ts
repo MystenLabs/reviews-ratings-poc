@@ -1,4 +1,4 @@
-import { CoinStruct, SuiClient } from "@mysten/sui.js/client";
+import { CoinStruct, SuiClient } from "@mysten/sui/client";
 
 interface GetMyCoinsProps {
   client: SuiClient;

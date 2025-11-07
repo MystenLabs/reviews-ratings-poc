@@ -1,4 +1,4 @@
-import { SuiClient } from "@mysten/sui.js/client";
+import { SuiClient } from "@mysten/sui/client";
 import { ADMIN_ADDRESS, SUI_NETWORK } from "./config";
 import { getCoinsOfAddress } from "./examples/getCoinsOfAddress";
 
