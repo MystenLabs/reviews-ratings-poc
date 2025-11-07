@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { Transaction } from "@mysten/sui/transactions";
 import { useSignAndExecuteTransaction } from "./useSignAndExecuteTransaction";
 
 export const useReviewVoting = () => {
@@ -7,7 +7,7 @@ export const useReviewVoting = () => {
   const { handleSignAndExecuteTransaction } = useSignAndExecuteTransaction();
 
   const handleUpvote = async (serviceId: string, reviewId: string) => {
-    const tx = new TransactionBlock();
+    const tx = new Transaction();
     tx.moveCall({
       target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::upvote`,
       arguments: [tx.object(serviceId), tx.pure(reviewId)],

@@ -1,4 +1,4 @@
-import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { Transaction } from "@mysten/sui/transactions";
 import { useSignAndExecuteTransaction } from "./useSignAndExecuteTransaction";
 
 export const useDashboardCreation = () => {
@@ -7,7 +7,7 @@ export const useDashboardCreation = () => {
     service_type: string,
     setIsLoading: any
     ) => {
-      const tx = new TransactionBlock();
+      const tx = new Transaction();
       tx.moveCall({
         target: `${process.env.NEXT_PUBLIC_PACKAGE}::dashboard::create_dashboard`,
         arguments: [

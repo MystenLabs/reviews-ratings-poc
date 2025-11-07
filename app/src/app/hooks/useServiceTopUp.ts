@@ -1,17 +1,17 @@
 import { useWalletKit } from "@mysten/wallet-kit";
 import { toast } from "react-hot-toast";
-import { useSui } from "./useSui";
-import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { useSuiClient } from "@mysten/dapp-kit";
+import { Transaction } from "@mysten/sui/transactions";
 
 export const useServiceTopUp = () => {
-  const { executeSignedTransactionBlock } = useSui();
-  const { signTransactionBlock } = useWalletKit();
+  const { executeSignedTransaction } = useSui();
+  const { signTransaction } = useWalletKit();
 
   const handleServiceTopUp = async (
     serviceId: string,
     amount: number,
   ) => {
-    const tx = new TransactionBlock();
+    const tx = new Transaction();
     const sendAmount = tx.splitCoins(tx.gas, [tx.pure(amount)]);
     tx.moveCall({
       target: `${process.env.NEXT_PUBLIC_PACKAGE}::service::top_up_reward`,
@@ -21,12 +21,12 @@ export const useServiceTopUp = () => {
       ],
     });
     tx.setGasBudget(1000000000);
-    return signTransactionBlock({
+    return signTransaction({
       transactionBlock: tx,
     })
       .then(async (signedTx: any) => {
         try {
-          let resp = await executeSignedTransactionBlock({
+          let resp = await executeSignedTransaction({
             signedTx,
             requestType: "WaitForLocalExecution",
             options: {

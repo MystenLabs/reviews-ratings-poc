@@ -3,14 +3,14 @@
 import React, { useState } from "react";
 import { useGetOwnedPoes } from "@/app/hooks/useGetOwnedPoes";
 import { Button, Table } from "flowbite-react";
-import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { Transaction } from "@mysten/sui/transactions";
 import crypto from "crypto";
 import { useWalletKit } from "@mysten/wallet-kit";
 import { AddReview } from "@/app/components/review/AddReview";
 import { HiOutlinePencilAlt } from "react-icons/hi";
 
 const OwnedServicesPage = () => {
-  const { signAndExecuteTransactionBlock, currentAccount } = useWalletKit();
+  const { signAndExecuteTransaction, currentAccount } = useWalletKit();
   const { dataPoes } = useGetOwnedPoes();
 
   const [openModal, setOpenModal] = useState(false);
@@ -21,7 +21,7 @@ const OwnedServicesPage = () => {
     "0x0000000000000000000000000000000000000000000000000000000000000006";
 
   const onSubmitReview = async (reviewBody: string, overallRate: string) => {
-    const tx = new TransactionBlock();
+    const tx = new Transaction();
 
     console.log(`serviceId=${serviceId}`);
     console.log(`poeId=${poeId}`);
@@ -41,7 +41,7 @@ const OwnedServicesPage = () => {
     });
 
     tx.setGasBudget(1000000000);
-    const resp = await signAndExecuteTransactionBlock({
+    const resp = await signAndExecuteTransaction({
       transactionBlock: tx,
       options: {
         showEffects: true,

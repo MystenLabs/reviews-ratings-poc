@@ -9,9 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@mysten/dapp-kit": "^0.19.1",
-    "@mysten/sui": "^1.39.1",
-    "@tanstack/react-query": "^5.62.11",
+    "@mysten/dapp-kit": "^0.19.8",
+    "@mysten/sui": "^1.44.0",
+    "@tanstack/react-query": "^5.90.7",
     "@types/node": "20.4.1",
     "@types/react": "18.2.14",
     "@types/react-dom": "18.2.6",

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useSui } from "../hooks/useSui";
-import { SuiMoveObject } from "@mysten/sui.js";
+import { useSuiClient } from "@mysten/dapp-kit";
+import { SuiMoveObject } from "@mysten/sui";
 import { useRouter } from "next/navigation";
 import { Service as ServiceType } from "../types/Service";
 import { useGetServices } from "../hooks/useGetServices";
@@ -13,7 +13,7 @@ interface Props {
 }
 
 export const Services = ({ isDetailed }: Props) => {
-  const { suiClient } = useSui();
+  const suiClient = useSuiClient();
   const router = useRouter();
   const { serviceList, isLoading, currentAccount } = useGetServices(
     process.env.NEXT_PUBLIC_DASHBOARD_ID as string,
